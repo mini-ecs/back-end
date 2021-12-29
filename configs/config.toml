@@ -1,0 +1,25 @@
+appName = "chat_room"
+
+[service]
+port = "9999"
+
+[mysql]
+host = "127.0.0.1"
+name = "chat"
+password = "000448664"
+port = 3306
+tablePrefix = ""
+user = "root"
+
+[log]
+level = "trace"
+path = "logs/chat.log"
+
+[staticPath]
+filePath = "web/static/file/"
+
+[msgChannelType]
+channelType = "gochannel"
+
+kafkaHosts = "kafka:9092"
+kafkaTopic = "go-chat-message"
