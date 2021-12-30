@@ -14,6 +14,19 @@ var UserService = new(userService)
 type userService struct {
 }
 
+// Auth godoc
+// @Summary      Auth admin
+// @Description  get admin info
+// @Tags         accounts,admin
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  model.User
+// @Failure      400  {object}  errors.mError
+// @Failure      401  {object}  errors.mError
+// @Failure      404  {object}  errors.mError
+// @Failure      500  {object}  errors.mError
+// @Security     ApiKeyAuth
+// @Router       /admin/auth [post]
 func (u *userService) Login(user *model.User) bool {
 	err := pool.GetDB().AutoMigrate(&user)
 	if err != nil {
@@ -31,6 +44,19 @@ func (u *userService) Login(user *model.User) bool {
 	return queryUser.Password == user.Password
 }
 
+// Auth godoc
+// @Summary      Auth admin
+// @Description  get admin info
+// @Tags         accounts,admin
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  model.User
+// @Failure      400  {object}  errors.mError
+// @Failure      401  {object}  errors.mError
+// @Failure      404  {object}  errors.mError
+// @Failure      500  {object}  errors.mError
+// @Security     ApiKeyAuth
+// @Router       /admin/auth [post]
 func (u *userService) Register(user *model.User) error {
 	db := pool.GetDB()
 	var userCount int64

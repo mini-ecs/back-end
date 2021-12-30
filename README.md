@@ -11,3 +11,7 @@
 ## 项目骨架安排
 
 [参考文件](https://github.com/golang-standards/project-layout) 。
+
+## [swagger接口](https://github.com/swaggo/swag/blob/master/README_zh-CN.md)
+
+在项目根目录运行`sh build/build.sh`即可生成接口文档。

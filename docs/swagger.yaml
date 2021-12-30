@@ -1,0 +1,79 @@
+basePath: /api/v1
+definitions:
+  errors.mError:
+    type: object
+  model.User:
+    properties:
+      avatar:
+        type: string
+      createAt:
+        type: string
+      deleteAt:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      password:
+        type: string
+      updateAt:
+        type: string
+      username:
+        type: string
+      uuid:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /admin/auth:
+    post:
+      consumes:
+      - application/json
+      description: get admin info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.mError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.mError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.mError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.mError'
+      security:
+      - ApiKeyAuth: []
+      summary: Auth admin
+      tags:
+      - accounts
+      - admin
+swagger: "2.0"
