@@ -10,19 +10,14 @@ import (
 
 var logger = log.GetGlobalLogger()
 
-// @title           Swagger Example API
-// @version         1.0
-// @description     This is a sample server celler server.
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
+// @title        Mini ECS API
+// @version      1.0
+// @description  Mini ECS 的API文档
 
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:8080
+// @host      localhost:9999
 // @BasePath  /api/v1
 func main() {
 	logger.Infof("Initializing project, config: %+v", config.GetConfig())

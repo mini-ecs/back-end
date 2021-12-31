@@ -11,7 +11,17 @@ import (
 
 var logger = log.GetGlobalLogger()
 
-func Register(c *gin.Context) {
+// RegisterUser godoc
+// @Summary      用户注册
+// @Description  用户注册
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        username  query     string        true  "用户名"
+// @Param        passwd    query     string        true  "密码"
+// @Response     400,200   {object}  response.Msg  ""
+// @Router       /user/register [post]
+func RegisterUser(c *gin.Context) {
 	var user model.User
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
@@ -27,6 +37,17 @@ func Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.SuccessMsg(user))
 }
+
+// Login godoc
+// @Summary      用户登录
+// @Description  用户登录
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        username  query     string        true  "用户名"
+// @Param        passwd    query     string        true  "密码"
+// @Response     400,200   {object}  response.Msg  ""
+// @Router       /user/login [post]
 func Login(c *gin.Context) {
 	var user model.User
 	// c.BindJSON(&user)
@@ -40,6 +61,32 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, response.SuccessMsg(user))
 		return
 	}
+
+	c.JSON(http.StatusOK, response.FailMsg("Login failed"))
+}
+
+// ModifyUser godoc
+// @Summary      用户修改个人信息
+// @Description  用户修改个人信息
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        username  query     string        true  "用户名"
+// @Param        passwd    query     string        true  "密码"
+// @Response     400,200   {object}  response.Msg  ""
+// @Router       /user/modify [post]
+func ModifyUser(c *gin.Context) {
+	var user model.User
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		return
+	}
+	logger.Infof("User %v try to modify", user)
+	// todo
+	//if service.UserService.Login(&user) {
+	//	c.JSON(http.StatusOK, response.SuccessMsg(user))
+	//	return
+	//}
 
 	c.JSON(http.StatusOK, response.FailMsg("Login failed"))
 }

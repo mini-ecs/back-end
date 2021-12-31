@@ -2,3 +2,4 @@
 
 swag init -generalInfo cmd/main.go -d ./
 swag fmt -g cmd/main.go -d ./
+go run cmd/main.go

@@ -1,79 +1,666 @@
 basePath: /api/v1
 definitions:
-  errors.mError:
-    type: object
-  model.User:
+  response.Msg:
     properties:
-      avatar:
-        type: string
-      createAt:
-        type: string
-      deleteAt:
+      code:
         type: integer
-      email:
+      data: {}
+      msg:
         type: string
-      id:
-        type: integer
-      nickname:
-        type: string
-      password:
-        type: string
-      updateAt:
-        type: string
-      username:
-        type: string
-      uuid:
-        type: string
-    required:
-    - password
-    - username
     type: object
-host: localhost:8080
+host: localhost:9999
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This is a sample server celler server.
+  contact: {}
+  description: Mini ECS 的API文档
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: Mini ECS API
   version: "1.0"
 paths:
-  /admin/auth:
-    post:
+  /course:
+    get:
       consumes:
       - application/json
-      description: get admin info
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/response.Msg'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errors.mError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/errors.mError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/errors.mError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errors.mError'
-      security:
-      - ApiKeyAuth: []
-      summary: Auth admin
+            $ref: '#/definitions/response.Msg'
+      summary: 获取课程列表
       tags:
-      - accounts
-      - admin
+      - course management
+    post:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 创建课程
+      tags:
+      - course management
+  /course/:uuid:
+    delete:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 删除课程
+      tags:
+      - course management
+    get:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 获取课程信息
+      tags:
+      - course management
+    put:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 修改课程
+      tags:
+      - course management
+  /image:
+    get:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 获取镜像列表
+      tags:
+      - image management
+    post:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 创建（上传）镜像
+      tags:
+      - image management
+  /image/:uuid:
+    delete:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 删除镜像
+      tags:
+      - image management
+    get:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 获取镜像具体信息
+      tags:
+      - image management
+    put:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 修改镜像条目信息
+      tags:
+      - image management
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 用户登录
+      tags:
+      - user
+  /user/modify:
+    post:
+      consumes:
+      - application/json
+      description: 用户修改个人信息
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 用户修改个人信息
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 用户注册
+      tags:
+      - user
+  /vm:
+    get:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 获取实例列表
+      tags:
+      - virtual machine management
+    post:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 创建实例
+      tags:
+      - virtual machine management
+  /vm/:uuid:
+    delete:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 删除实例
+      tags:
+      - virtual machine management
+    get:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 获取实例信息
+      tags:
+      - virtual machine management
+    put:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: Unimplemented
+      tags:
+      - virtual machine management
+  /vm/image:
+    post:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 根据实例创建镜像
+      tags:
+      - virtual machine management
+  /vm/snapshot:
+    patch:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 将实例恢复到某个快照
+      tags:
+      - virtual machine management
+    post:
+      consumes:
+      - application/json
+      description: Unimplemented
+      parameters:
+      - description: 用户名
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: passwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Msg'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 根据实例创建快照
+      tags:
+      - virtual machine management
+  /welcome:
+    get:
+      consumes:
+      - application/json
+      description: 操作行为的详细说明。
+      parameters:
+      - description: 这是评论
+        in: query
+        name: val1
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 这是评论1
+          schema:
+            type: integer
+        "400":
+          description: 这是评论2
+          schema:
+            $ref: '#/definitions/response.Msg'
+      summary: 该操作的简短摘要
+      tags:
+      - example-tag
 swagger: "2.0"

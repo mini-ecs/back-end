@@ -23,8 +23,31 @@ func NewRouter() *gin.Engine {
 	group := r.Group("api/v1")
 	{
 		group.GET("/welcome", v1.Welcome)
+
 		group.POST("/user/login", v1.Login)
-		group.POST("/user/register", v1.Register)
+		group.POST("/user/register", v1.RegisterUser)
+		group.POST("/user/modify", v1.ModifyUser)
+
+		group.GET("/course", v1.GetCourseList)
+		group.GET("/course/:uuid", v1.GetSpecificCourse)
+		group.PUT("/course/:uuid", v1.ModifyCourse)
+		group.DELETE("/course/:uuid", v1.DeleteCourse)
+		group.POST("/course", v1.CreateCourse)
+
+		group.GET("/image", v1.GetImageList)
+		group.GET("/image/:uuid", v1.GetSpecificImage)
+		group.PUT("/image/:uuid", v1.ModifyImage)
+		group.DELETE("/image/:uuid", v1.DeleteImage)
+		group.POST("/image", v1.CreateImage)
+
+		group.GET("/vm", v1.GetVMList)
+		group.GET("/vm/:uuid", v1.GetSpecificVM)
+		group.PUT("/vm/:uuid", v1.ModifyVM)
+		group.DELETE("/vm/:uuid", v1.DeleteVM)
+		group.POST("/vm", v1.CreateVM)
+		group.POST("/vm/image", v1.MakeImageWithVM)
+		group.POST("/vm/snapshot", v1.MakeSnapshotWithVM)
+		group.PATCH("/vm/snapshot", v1.ResetVMWithSnapshot)
 
 	}
 	return r
