@@ -17,9 +17,8 @@ var logger = log.GetGlobalLogger()
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        username  query     string        true  "用户名"
-// @Param        passwd    query     string        true  "密码"
-// @Response     400,200   {object}  response.Msg  ""
+// @Param        user     body      model.User    true  "user"
+// @Response     400,200  {object}  response.Msg  ""
 // @Router       /user/register [post]
 func RegisterUser(c *gin.Context) {
 	var user model.User
@@ -44,16 +43,15 @@ func RegisterUser(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        username  query     string        true  "用户名"
-// @Param        passwd    query     string        true  "密码"
-// @Response     400,200   {object}  response.Msg  ""
+// @Param        user     body      model.User    true  "user"
+// @Response     400,200  {object}  response.Msg  ""
 // @Router       /user/login [post]
 func Login(c *gin.Context) {
 	var user model.User
 	// c.BindJSON(&user)
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		return
+		panic(err)
 	}
 	logger.Infof("User %v try to login", user)
 
@@ -71,9 +69,8 @@ func Login(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        username  query     string        true  "用户名"
-// @Param        passwd    query     string        true  "密码"
-// @Response     400,200   {object}  response.Msg  ""
+// @Param        user     body      model.User    true  "user"
+// @Response     400,200  {object}  response.Msg  ""
 // @Router       /user/modify [post]
 func ModifyUser(c *gin.Context) {
 	var user model.User

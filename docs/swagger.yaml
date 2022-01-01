@@ -1,5 +1,37 @@
 basePath: /api/v1
 definitions:
+  model.User:
+    properties:
+      avatar:
+        example: bcdedit
+        type: string
+      createAt:
+        type: string
+      deleteAt:
+        type: integer
+      email:
+        example: 2123@qq.com
+        type: string
+      id:
+        type: integer
+      nickname:
+        example: nickname
+        type: string
+      password:
+        example: password
+        type: string
+      updateAt:
+        type: string
+      username:
+        example: account name
+        type: string
+      uuid:
+        example: "1234345"
+        type: string
+    required:
+    - password
+    - username
+    type: object
   response.Msg:
     properties:
       code:
@@ -318,16 +350,12 @@ paths:
       - application/json
       description: 用户登录
       parameters:
-      - description: 用户名
-        in: query
-        name: username
+      - description: user
+        in: body
+        name: user
         required: true
-        type: string
-      - description: 密码
-        in: query
-        name: passwd
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
@@ -348,16 +376,12 @@ paths:
       - application/json
       description: 用户修改个人信息
       parameters:
-      - description: 用户名
-        in: query
-        name: username
+      - description: user
+        in: body
+        name: user
         required: true
-        type: string
-      - description: 密码
-        in: query
-        name: passwd
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
@@ -378,16 +402,12 @@ paths:
       - application/json
       description: 用户注册
       parameters:
-      - description: 用户名
-        in: query
-        name: username
+      - description: user
+        in: body
+        name: user
         required: true
-        type: string
-      - description: 密码
-        in: query
-        name: passwd
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:

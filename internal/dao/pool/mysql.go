@@ -2,6 +2,7 @@ package pool
 
 import (
 	"fmt"
+	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/pkg/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -31,7 +32,10 @@ func init() {
 	}
 
 	sqlDB, _ := _db.DB()
-
+	err = _db.AutoMigrate(&model.VM{})
+	if err != nil {
+		panic(err)
+	}
 	//设置数据库连接池参数
 	sqlDB.SetMaxOpenConns(100) //设置数据库连接池最大连接数
 	sqlDB.SetMaxIdleConns(20)  //连接池最大允许的空闲连接数，如果没有sql任务需要执行的连接数大于20，超过的连接会被连接池关闭。

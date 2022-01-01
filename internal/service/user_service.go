@@ -6,7 +6,6 @@ import (
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/me-errors"
 	"github.com/mini-ecs/back-end/pkg/log"
-	"time"
 )
 
 var UserService = new(userService)
@@ -39,8 +38,6 @@ func (u *userService) Register(user *model.User) error {
 		return me_errors.New("user already exists")
 	}
 	user.Uuid = uuid.New().String()
-	user.CreateAt = time.Now()
-	user.DeleteAt = 0
 
 	db.Create(&user)
 	return nil

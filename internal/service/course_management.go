@@ -11,7 +11,7 @@ func (c *courseManager) GetCourseList() {
 func (c *courseManager) GetSpecificCourse() {
 
 }
-func (c *courseManager) GetCourseLisCreateCourset() {
+func (c *courseManager) GetCourseLisCreateCourse() {
 
 }
 func (c *courseManager) ModifyCourse() {

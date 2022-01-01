@@ -480,18 +480,13 @@ var doc = `{
                 "summary": "用户登录",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "密码",
-                        "name": "passwd",
-                        "in": "query",
-                        "required": true
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
                     }
                 ],
                 "responses": {
@@ -525,18 +520,13 @@ var doc = `{
                 "summary": "用户修改个人信息",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "密码",
-                        "name": "passwd",
-                        "in": "query",
-                        "required": true
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
                     }
                 ],
                 "responses": {
@@ -570,18 +560,13 @@ var doc = `{
                 "summary": "用户注册",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "username",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "密码",
-                        "name": "passwd",
-                        "in": "query",
-                        "required": true
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
                     }
                 ],
                 "responses": {
@@ -992,6 +977,51 @@ var doc = `{
         }
     },
     "definitions": {
+        "model.User": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "bcdedit"
+                },
+                "createAt": {
+                    "type": "string"
+                },
+                "deleteAt": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "2123@qq.com"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "nickname"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "updateAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "account name"
+                },
+                "uuid": {
+                    "type": "string",
+                    "example": "1234345"
+                }
+            }
+        },
         "response.Msg": {
             "type": "object",
             "properties": {

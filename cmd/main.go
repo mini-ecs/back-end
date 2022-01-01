@@ -22,6 +22,7 @@ var logger = log.GetGlobalLogger()
 func main() {
 	logger.Infof("Initializing project, config: %+v", config.GetConfig())
 	logger.Infof("Starting server...")
+
 	r := router.NewRouter()
 	err := r.Run(fmt.Sprintf(":%v", config.GetConfig().Service.Port))
 	if err != nil {
