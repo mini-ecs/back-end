@@ -8,6 +8,7 @@ type UserType struct {
 	gorm.Model
 	Type string `json:"type" gorm:"comment:'type'"`
 }
+
 type User struct {
 	gorm.Model
 	Uuid     string `json:"uuid" gorm:"type:varchar(150);not null;unique_index:idx_uuid;comment:'uuid'" example:"1234345"`

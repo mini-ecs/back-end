@@ -13,5 +13,5 @@ type VM struct {
 	SourceCourseID uint   `json:"-"`
 	SourceCourse   Course `json:"sourceCourse" gorm:"foreignKey:CreatorID"`
 	StatusID       uint   `json:"-"`
-	Status         status `json:"status" gorm:"foreignKey:CreatorID"`
+	Status         Status `json:"Status" gorm:"foreignKey:CreatorID"`
 }

@@ -34,6 +34,7 @@ func NewRouter() *gin.Engine {
 		group.GET("/user/currentUser", v1.CurrentUser)
 
 		group.GET("/course", v1.GetCourseList)
+		group.GET("/course/configs", v1.GetMachineConfig)
 		group.GET("/course/:uuid", v1.GetSpecificCourse)
 		group.PUT("/course/:uuid", v1.ModifyCourse)
 		group.DELETE("/course/:uuid", v1.DeleteCourse)

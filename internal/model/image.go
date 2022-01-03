@@ -7,6 +7,7 @@ type ImageOrSnapshot struct {
 	Type         string `json:"type" gorm:"not null"`
 	Location     string `json:"location" gorm:"not null"`
 	GenerateType int32  `json:"generateType" gorm:"not null"`
+	Name         string `json:"name" gorm:"not null"`
 
 	CreatorID uint `json:"-"`
 	Creator   User `json:"creator" gorm:"foreignKey:CreatorID;not null"`

@@ -16,11 +16,12 @@ func SuccessMsg(data interface{}) *Msg {
 }
 
 func FailMsg(msg string) *Msg {
-	msgObj := &Msg{
-		Code: -1,
-		Msg:  msg,
+	ret := &Msg{
+		Code: 200,
+		Msg:  "ERROR",
+		Data: msg,
 	}
-	return msgObj
+	return ret
 }
 
 func FailCodeMsg(code int, msg string) *Msg {

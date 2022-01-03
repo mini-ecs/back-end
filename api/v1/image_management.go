@@ -19,8 +19,8 @@ import (
 // @Router       /image [get]
 func GetImageList(c *gin.Context) {
 	logger.Infof("GetImageList")
-	service.ImageManagement.GetImageList()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	images := service.ImageManagement.GetImageList()
+	c.JSON(http.StatusOK, response.SuccessMsg(images))
 }
 
 // GetSpecificImage godoc
