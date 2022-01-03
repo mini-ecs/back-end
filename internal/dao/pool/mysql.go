@@ -32,7 +32,7 @@ func init() {
 	}
 
 	sqlDB, _ := _db.DB()
-	err = _db.AutoMigrate(&model.VM{})
+	err = _db.AutoMigrate(&model.VM{}, &model.User{}, &model.UserType{}, model.ImageOrSnapshot{})
 	if err != nil {
 		panic(err)
 	}

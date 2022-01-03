@@ -14,19 +14,14 @@ type userService struct {
 }
 
 func (u *userService) Login(user *model.User) bool {
-	err := pool.GetDB().AutoMigrate(&user)
-	if err != nil {
-		panic(err)
-	}
-	log.GetGlobalLogger().Infof("User %v try to login", user)
 	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("User %v try to login", user)
 
-	var queryUser *model.User
+	queryUser := &model.User{}
 	db.First(&queryUser, "username = ?", user.Username)
 	log.GetGlobalLogger().Infof("query user %v ...", queryUser)
 
 	user.Uuid = queryUser.Uuid
-
 	return queryUser.Password == user.Password
 }
 
@@ -38,7 +33,15 @@ func (u *userService) Register(user *model.User) error {
 		return me_errors.New("user already exists")
 	}
 	user.Uuid = uuid.New().String()
+	user.UserType = model.UserType{Type: "student"}
 
 	db.Create(&user)
 	return nil
+}
+func (u *userService) CurrentUser(uuid string) model.User {
+	db := pool.GetDB()
+
+	queryUser := &model.User{}
+	db.First(&queryUser, "uuid = ?", uuid)
+	return *queryUser
 }

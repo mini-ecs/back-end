@@ -8,7 +8,7 @@ type Msg struct {
 
 func SuccessMsg(data interface{}) *Msg {
 	msg := &Msg{
-		Code: 0,
+		Code: 200,
 		Msg:  "SUCCESS",
 		Data: data,
 	}

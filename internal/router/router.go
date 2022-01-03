@@ -2,6 +2,8 @@ package router
 
 import (
 	"fmt"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/api/v1"
 	"github.com/mini-ecs/back-end/pkg/common/response"
@@ -18,6 +20,8 @@ func NewRouter() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
 	r.Use(Cors())
+	store := cookie.NewStore([]byte("secret12345"))
+	r.Use(sessions.Sessions("mini-ecs", store))
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	group := r.Group("api/v1")
@@ -27,6 +31,7 @@ func NewRouter() *gin.Engine {
 		group.POST("/user/login", v1.Login)
 		group.POST("/user/register", v1.RegisterUser)
 		group.POST("/user/modify", v1.ModifyUser)
+		group.GET("/user/currentUser", v1.CurrentUser)
 
 		group.GET("/course", v1.GetCourseList)
 		group.GET("/course/:uuid", v1.GetSpecificCourse)
