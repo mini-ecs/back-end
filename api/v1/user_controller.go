@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/internal/service"
+	"github.com/mini-ecs/back-end/pkg/common/error_msg"
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"github.com/mini-ecs/back-end/pkg/log"
 	"net/http"
@@ -31,7 +32,7 @@ func RegisterUser(c *gin.Context) {
 
 	err = service.UserService.Register(&user)
 	if err != nil {
-		c.JSON(http.StatusOK, response.FailMsg(err.Error()))
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
 		return
 	}
 
@@ -76,7 +77,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.FailMsg("Login failed"))
+	c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorLogin, "Login failed"))
 }
 
 // CurrentUser godoc
@@ -89,16 +90,7 @@ func Login(c *gin.Context) {
 // @Response     400,200  {object}  response.Msg  ""
 // @Router       /currentUser [get]
 func CurrentUser(c *gin.Context) {
-	cookie, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(http.StatusOK, response.FailMsg("You should login first"))
-		return
-	}
-	session := sessions.Default(c)
-	if session.Get(cookie) != "online" {
-		c.JSON(http.StatusOK, response.FailMsg("You should login first"))
-		return
-	}
+	cookie, _ := c.Cookie("uuid")
 	user := service.UserService.CurrentUser(cookie)
 	user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
 	c.JSON(http.StatusOK, response.SuccessMsg(user))
@@ -126,5 +118,5 @@ func ModifyUser(c *gin.Context) {
 	//	return
 	//}
 
-	c.JSON(http.StatusOK, response.FailMsg("Login failed"))
+	c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorUndefined, "Login failed"))
 }

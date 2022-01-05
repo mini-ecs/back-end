@@ -4,8 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/internal/service"
+	"github.com/mini-ecs/back-end/pkg/common/error_msg"
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"net/http"
+	"strconv"
 )
 
 // GetCourseList godoc
@@ -21,7 +23,7 @@ import (
 func GetCourseList(c *gin.Context) {
 	logger.Infof("GetCourseList")
 	courses := service.CourseManager.GetCourseList()
-	logger.Errorf("%+v", courses)
+	//logger.Errorf("%+v", courses)
 	c.JSON(http.StatusOK, response.SuccessMsg(courses))
 }
 
@@ -85,7 +87,7 @@ func CreateCourse(c *gin.Context) {
 	err = service.CourseManager.CreateCourse(opt)
 	logger.Error("out, ", err)
 	if err != nil {
-		c.JSON(http.StatusOK, response.FailMsg("fail"))
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, "fail"))
 		return
 	}
 	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
@@ -119,6 +121,16 @@ func ModifyCourse(c *gin.Context) {
 // @Router       /course/:uuid [delete]
 func DeleteCourse(c *gin.Context) {
 	logger.Infof("DeleteCourse")
-	service.CourseManager.DeleteCourse()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	err = service.CourseManager.DeleteCourse(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
 }

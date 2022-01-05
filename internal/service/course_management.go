@@ -19,6 +19,13 @@ func (c *courseManager) GetCourseList() []model.Course {
 	if res.Error != nil {
 		log.GetGlobalLogger().Error(res.Error)
 	}
+	// todo: 可以加个缓存来减少查询次数
+	for i := range courses {
+		db.Find(&courses[i].Image, "ID = ?", courses[i].ImageID)
+		db.Find(&courses[i].Status, "ID = ?", courses[i].StatusID)
+		db.Find(&courses[i].Teacher, "ID = ?", courses[i].TeacherID)
+		db.Find(&courses[i].MachineConfig, "ID = ?", courses[i].MachineConfigID)
+	}
 	return courses
 }
 
@@ -41,8 +48,17 @@ func (c *courseManager) GetCourseLisCreateCourse() {
 func (c *courseManager) ModifyCourse() {
 
 }
-func (c *courseManager) DeleteCourse() {
-
+func (c *courseManager) DeleteCourse(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
+	course := model.Course{}
+	course.ID = id
+	res := db.Unscoped().Delete(&course)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+		return res.Error
+	}
+	return nil
 }
 func (c *courseManager) CreateCourse(opt model.CreateCourseOpt) error {
 	db := pool.GetDB()

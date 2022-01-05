@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/api/v1"
+	"github.com/mini-ecs/back-end/pkg/common/error_msg"
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"github.com/mini-ecs/back-end/pkg/log"
 	swaggerFiles "github.com/swaggo/files"
@@ -26,47 +27,39 @@ func NewRouter() *gin.Engine {
 
 	group := r.Group("api/v1")
 	{
-		group.GET("/welcome", v1.Welcome)
+		group.GET("/welcome", Auth(), v1.Welcome)
 
 		group.POST("/user/login", v1.Login)
 		group.POST("/user/register", v1.RegisterUser)
-		group.POST("/user/modify", v1.ModifyUser)
-		group.GET("/user/currentUser", v1.CurrentUser)
+		group.POST("/user/modify", Auth(), v1.ModifyUser)
+		group.GET("/user/currentUser", Auth(), v1.CurrentUser)
 
-		group.GET("/course", v1.GetCourseList)
-		group.GET("/course/configs", v1.GetMachineConfig)
-		group.GET("/course/:uuid", v1.GetSpecificCourse)
-		group.PUT("/course/:uuid", v1.ModifyCourse)
-		group.DELETE("/course/:uuid", v1.DeleteCourse)
-		group.POST("/course", v1.CreateCourse)
+		group.GET("/course", Auth(), v1.GetCourseList)
+		group.GET("/course/configs", Auth(), v1.GetMachineConfig)
+		group.GET("/course/:uuid", Auth(), v1.GetSpecificCourse)
+		group.PUT("/course/:uuid", Auth(), v1.ModifyCourse)
+		group.DELETE("/course/:uuid", Auth(), v1.DeleteCourse)
+		group.POST("/course", Auth(), v1.CreateCourse)
 
-		group.GET("/image", v1.GetImageList)
-		group.GET("/image/:uuid", v1.GetSpecificImage)
-		group.PUT("/image/:uuid", v1.ModifyImage)
-		group.DELETE("/image/:uuid", v1.DeleteImage)
-		group.POST("/image", v1.CreateImage)
+		group.GET("/image", Auth(), v1.GetImageList)
+		group.GET("/image/:uuid", Auth(), v1.GetSpecificImage)
+		group.PUT("/image/:uuid", Auth(), v1.ModifyImage)
+		group.DELETE("/image/:uuid", Auth(), v1.DeleteImage)
+		group.POST("/image", Auth(), v1.CreateImage)
 
-		group.GET("/vm", v1.GetVMList)
-		group.GET("/vm/:uuid", v1.GetSpecificVM)
-		group.PUT("/vm/:uuid", v1.ModifyVM)
-		group.DELETE("/vm/:uuid", v1.DeleteVM)
-		group.POST("/vm", v1.CreateVM)
-		group.POST("/vm/image", v1.MakeImageWithVM)
-		group.POST("/vm/snapshot", v1.MakeSnapshotWithVM)
-		group.PATCH("/vm/snapshot", v1.ResetVMWithSnapshot)
+		group.GET("/vm", Auth(), v1.GetVMList)
+		group.GET("/vm/:uuid", Auth(), v1.GetSpecificVM)
+		group.PUT("/vm/:uuid", Auth(), v1.ModifyVM)
+		group.DELETE("/vm/:uuid", Auth(), v1.DeleteVM)
+		group.POST("/vm", Auth(), v1.CreateVM)
+		group.POST("/vm/image", Auth(), v1.MakeImageWithVM)
+		group.POST("/vm/snapshot", Auth(), v1.MakeSnapshotWithVM)
+		group.PATCH("/vm/snapshot", Auth(), v1.ResetVMWithSnapshot)
 
 	}
 	return r
 }
-func Recovery(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Errorf("gin catch error: %v", r)
-			c.JSON(http.StatusOK, response.FailMsg("系统内部错误"))
-		}
-	}()
-	c.Next()
-}
+
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method               //请求方法
@@ -99,5 +92,33 @@ func Cors() gin.HandlerFunc {
 		}
 		// 处理请求
 		c.Next() //  处理请求
+	}
+}
+
+// Auth 关于登录授权问题
+// 目前的实现方式只能保证在登录时，客户端和后端都能保证用户是在线的。检验的方式为：
+// 1. 登录时，前端不带cookie地向后端验证用户名和密码是否正确
+// 2. 后端验证正确，则向客户端返回的消息里带上cookie，里面存放的是该用户的uuid。后端本地维护了session，以用户的uuid为key来标志用户的状态为在线
+// 3. 此后，客户端每次发送请求都附带该cookie，后端使用 Auth() 函数来确保用户发来的请求是他本人。
+// 4. 客户端方面则在本地维护了一个变量来标志用户是否在线。即使用一条api请求后端确认用户是否在线。
+// 在正常的情况下上面的逻辑没有问题，但如果用户在登录后清除了cookie，则会导致用户后续的请求都是不带cookie的，后端则将其标记为不在线。但前端自己
+// 本身维护的状态里，因为他已经在登录时验证了自己是在线的，所以它认为自己此时的请求是合法的。因此会出现问题。
+//
+// 一种比较合适的解决方式是在前端也使用中间件，每次收到后盾的返回消息时先检测后端返回的是否是标志自己不在线的消息，再进行后续操作。如果不这样做，
+// 则客户端每个get post delete 操作都需要加上一段代码来执行上面的逻辑，非常冗余。
+func Auth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cook, err := c.Cookie("uuid")
+		if err != nil {
+			c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorUnauthorized, "You should login first"))
+			//c.Redirect(http.StatusMovedPermanently, "http://localhost:8000/user/login")
+			c.Abort()
+		}
+		session := sessions.Default(c)
+		if session.Get(cook) != "online" {
+			c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorUnauthorized, "You should login first"))
+			//c.Redirect(http.StatusMovedPermanently, "http://localhost:8000/user/login")
+			c.Abort()
+		}
 	}
 }
