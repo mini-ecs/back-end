@@ -104,7 +104,7 @@ type DomainCreateOpt struct {
 	Devices       __devices       `xml:"devices"`
 }
 
-var DefaultOpt = DomainCreateOpt{
+var DefaultCreateDomainOpt = DomainCreateOpt{
 	Type: "kvm",
 	Name: "ubuntu",
 	Uuid: "c7a5fdbd-cdaf-9455-926a-d65c16db1809",
@@ -181,4 +181,11 @@ var DefaultOpt = DomainCreateOpt{
 			},
 		},
 	},
+}
+
+type DomainSnapshot struct {
+	XMLName     xml.Name `xml:"domainsnapshot"`
+	Text        string   `xml:",chardata"`
+	Name        string   `xml:"name,omitempty"`
+	Description string   `xml:"description,omitempty"`
 }

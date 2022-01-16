@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/digitalocean/go-libvirt"
 	"github.com/digitalocean/go-libvirt/socket/dialers"
+	"math"
 	"net"
 	"strconv"
 	"time"
@@ -14,15 +15,18 @@ import (
 /*
 	该包提供的功能：
 	1. Domain管理。
-		- 获取Domain的IP
-		- 获取Domain的VNC端口
+		- 获取Domain的IP √
+		- 获取Domain的VNC端口 √
 		- 制作快照（内存快照、磁盘快照）
 		- 恢复快照
 		- 删除快照
 		- 列表快照
 		- 获取Domain的信息，如CPU、内存资源状态
-		- 创建Domain
-		- 删除Domain
+		- 创建Domain √
+		- 删除Domain √
+		- 重启Domain √
+		- 关机Domain √
+		- 启动Domain √
 	2. 镜像文件管理-可替换（先实现本机存储,对用户透明）
 		- iso等镜像
 		- qcow2等磁盘镜像
@@ -88,7 +92,11 @@ var intToStateMap = map[libvirt.DomainState]string{
 	7: "DomainPmSuspended",
 }
 
-func (l *Lib) GetDomainState(domain libvirt.Domain) (DomainState, error) {
+func (l *Lib) GetDomainState(name string) (DomainState, error) {
+	domain, err := l.GetDomainByName(name)
+	if err != nil {
+		return DomainState{}, err
+	}
 	state, maxMemory, mem, vcpu, cpu, err := l.con.DomainGetInfo(domain)
 	if err != nil {
 		return DomainState{}, err
@@ -104,7 +112,11 @@ func (l *Lib) GetDomainState(domain libvirt.Domain) (DomainState, error) {
 	return d, nil
 }
 
-func (l *Lib) GetDomainXML(domain libvirt.Domain) Domain {
+func (l *Lib) GetDomainXML(name string) Domain {
+	domain, err := l.GetDomainByName(name)
+	if err != nil {
+		return Domain{}
+	}
 	desc, err := l.con.DomainGetXMLDesc(domain, 0)
 	if err != nil {
 		panic(err)
@@ -118,22 +130,18 @@ func (l *Lib) GetDomainXML(domain libvirt.Domain) Domain {
 	return descDomain
 }
 
-func (l *Lib) getDomainMac(domain libvirt.Domain) string {
-	d := l.GetDomainXML(domain)
+func (l *Lib) getDomainMac(name string) string {
+	d := l.GetDomainXML(name)
 	return d.Devices.Interface.Mac.Address
 }
-func (l *Lib) getDomainBridgeName(domain libvirt.Domain) string {
-	d := l.GetDomainXML(domain)
+func (l *Lib) getDomainBridgeName(name string) string {
+	d := l.GetDomainXML(name)
 	return d.Devices.Interface.Source.Bridge
 }
 
-func (l *Lib) GetDomainVNCPort(domain libvirt.Domain) string {
-	d := l.GetDomainXML(domain)
+func (l *Lib) GetDomainVNCPort(name string) string {
+	d := l.GetDomainXML(name)
 	return d.Devices.Graphics.Port
-}
-
-func (l *Lib) CreateSnapshot(domain libvirt.Domain) {
-	//l.con.DomainSnapshotCreateXML(domain)
 }
 
 func (l *Lib) CreateDomain(opt DomainCreateOpt) error {
@@ -232,8 +240,8 @@ func (l *Lib) ResumeDomain(name string) error {
 }
 
 // GetDomainIP error
-func (l *Lib) GetDomainIP(domain libvirt.Domain) {
-	mac := l.getDomainBridgeName(domain)
+func (l *Lib) GetDomainIP(name string) {
+	mac := l.getDomainBridgeName(name)
 	inter, err := l.con.InterfaceLookupByName(mac)
 	if err != nil {
 		panic(err)
@@ -247,12 +255,64 @@ func (l *Lib) GetDomainIP(domain libvirt.Domain) {
 }
 
 // GetDomainIPAddress 不知道为什么会返回一个数组
-func (l *Lib) GetDomainIPAddress(d libvirt.Domain) []libvirt.DomainInterface {
+func (l *Lib) GetDomainIPAddress(name string) []libvirt.DomainInterface {
+	d, err := l.GetDomainByName(name)
+	if err != nil {
+		return nil
+	}
+
 	addresses, err := l.con.DomainInterfaceAddresses(d, uint32(libvirt.DomainInterfaceAddressesSrcLease), 0)
 	if err != nil {
 		panic(err)
 	}
 	return addresses
+}
+
+func (l *Lib) CreateSnapshot(name string, opt DomainSnapshot) error {
+	domain, err := l.GetDomainByName(name)
+	if err != nil {
+		return err
+	}
+	xmls, err := xml.Marshal(opt)
+	if err != nil {
+		return err
+	}
+	//libvirt.DomainSnapshotCreateFlags
+	//diskOnly := libvirt.DomainSnapshotCreateDiskOnly 只保存磁盘则使用该flag
+	createXML, err := l.con.DomainSnapshotCreateXML(domain, string(xmls), 0)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", createXML)
+	return nil
+}
+
+func (l *Lib) RevertSnapshot(name string) error {
+	domain, err := l.GetDomainByName(name)
+	if err != nil {
+		return err
+	}
+	snap, err := l.con.DomainSnapshotCurrent(domain, 0)
+	if err != nil {
+		return err
+	}
+	err = l.con.DomainRevertToSnapshot(snap, 0)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *Lib) ListSnapshots(name string) ([]libvirt.DomainSnapshot, error) {
+	domain, err := l.GetDomainByName(name)
+	if err != nil {
+		return nil, err
+	}
+	snapshots, _, err := l.con.DomainListAllSnapshots(domain, math.MaxInt8, 0)
+	if err != nil {
+		return nil, err
+	}
+	return snapshots, nil
 }
 
 func (l *Lib) GetAllInterfaces() {

@@ -30,13 +30,9 @@ func TestLib_GetInterface(t *testing.T) {
 
 func TestLib_GetDomainIP(t *testing.T) {
 	l := GenerateEnv()
-	d, err := l.GetDomainByName("ubuntu")
-	assert.Equal(t, err, nil)
-
-	i1 := l.GetDomainIPAddress(d)
+	i1 := l.GetDomainIPAddress(domainName)
 	fmt.Println(i1)
-	l.GetDomainIP(d)
-
+	l.GetDomainIP(domainName)
 }
 
 func TestLib_NewDomainOpt(t *testing.T) {
@@ -81,7 +77,7 @@ func TestLib_NewDomainOpt(t *testing.T) {
 		t.Error(err)
 	}
 
-	res, err := xml.Marshal(DefaultOpt)
+	res, err := xml.Marshal(DefaultCreateDomainOpt)
 	if err != nil {
 		t.Error(err)
 	}
@@ -98,7 +94,7 @@ func TestLib_NewDomainOpt(t *testing.T) {
 
 func TestLib_CreateDomain(t *testing.T) {
 	l := GenerateEnv()
-	d := DefaultOpt
+	d := DefaultCreateDomainOpt
 	u, _ := uuid.NewUUID()
 	d.Uuid = u.String()
 	d.Name = "testlib"
@@ -132,5 +128,20 @@ func TestLib_ResumeDomain(t *testing.T) {
 func TestLib_DestroyDomain(t *testing.T) {
 	l := GenerateEnv()
 	err := l.DestroyDomain(domainName)
+	assert.Equal(t, err, nil)
+}
+
+func TestLib_CreateSnapshot(t *testing.T) {
+	l := GenerateEnv()
+	opt := DomainSnapshot{
+		Name: "first",
+	}
+	err := l.CreateSnapshot(domainName, opt)
+	assert.Equal(t, err, nil)
+
+}
+func TestLib_ListSnapshots(t *testing.T) {
+	l := GenerateEnv()
+	_, err := l.ListSnapshots(domainName)
 	assert.Equal(t, err, nil)
 }
