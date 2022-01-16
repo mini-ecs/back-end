@@ -19,6 +19,9 @@ func (i *imageManagement) GetImageList() []model.ImageOrSnapshot {
 	if res.Error != nil {
 		log.GetGlobalLogger().Error(res.Error)
 	}
+	for i := range images {
+		db.Find(&images[i].Creator, "ID = ?", images[i].CreatorID)
+	}
 	return images
 }
 
@@ -34,6 +37,15 @@ func (i *imageManagement) ModifyImage() {
 
 }
 
-func (i *imageManagement) DeleteImage() {
-
+func (i *imageManagement) DeleteImage(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
+	image := model.ImageOrSnapshot{}
+	image.ID = id
+	res := db.Unscoped().Delete(&image)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+		return res.Error
+	}
+	return nil
 }

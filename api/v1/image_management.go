@@ -3,8 +3,10 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/internal/service"
+	"github.com/mini-ecs/back-end/pkg/common/error_msg"
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"net/http"
+	"strconv"
 )
 
 // GetImageList godoc
@@ -83,6 +85,17 @@ func ModifyImage(c *gin.Context) {
 // @Router       /image/:uuid [delete]
 func DeleteImage(c *gin.Context) {
 	logger.Infof("DeleteImage")
-	service.ImageManagement.DeleteImage()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	logger.Infof("DeleteCourse")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	err = service.ImageManagement.DeleteImage(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
 }

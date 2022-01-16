@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+	github.com/digitalocean/go-libvirt v0.0.0-20210723161134-761cfeeb5968
 	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
@@ -18,6 +19,8 @@ require (
 	github.com/zput/zxcTool v1.3.10
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	google.golang.org/grpc v1.43.0
+	google.golang.org/protobuf v1.27.1
 	gorm.io/driver/mysql v1.2.2
 	gorm.io/gorm v1.22.4
 )
