@@ -255,17 +255,17 @@ func (l *Lib) GetDomainIP(name string) {
 }
 
 // GetDomainIPAddress 不知道为什么会返回一个数组
-func (l *Lib) GetDomainIPAddress(name string) []libvirt.DomainInterface {
+func (l *Lib) GetDomainIPAddress(name string) (string, error) {
 	d, err := l.GetDomainByName(name)
 	if err != nil {
-		return nil
+		return "", err
 	}
 
 	addresses, err := l.con.DomainInterfaceAddresses(d, uint32(libvirt.DomainInterfaceAddressesSrcLease), 0)
 	if err != nil {
 		panic(err)
 	}
-	return addresses
+	return addresses[0].Addrs[0].Addr, nil
 }
 
 func (l *Lib) CreateSnapshot(name string, opt DomainSnapshot) error {

@@ -30,8 +30,9 @@ func TestLib_GetInterface(t *testing.T) {
 
 func TestLib_GetDomainIP(t *testing.T) {
 	l := GenerateEnv()
-	i1 := l.GetDomainIPAddress(domainName)
-	fmt.Println(i1)
+	i1, err := l.GetDomainIPAddress(domainName)
+	assert.Equal(t, err, nil)
+	fmt.Printf("%+v\n", i1)
 	l.GetDomainIP(domainName)
 }
 

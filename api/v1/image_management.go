@@ -37,7 +37,7 @@ func GetImageList(c *gin.Context) {
 // @Router       /image/:uuid [get]
 func GetSpecificImage(c *gin.Context) {
 	logger.Infof("GetSpecificImage")
-	service.ImageManagement.GetSpecificImage()
+	//service.ImageManagement.GetSpecificImage()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }
 
@@ -53,7 +53,7 @@ func GetSpecificImage(c *gin.Context) {
 // @Router       /image [post]
 func CreateImage(c *gin.Context) {
 	logger.Infof("CreateImage")
-	service.ImageManagement.CreateImage()
+	//service.ImageManagement.CreateImage()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }
 

@@ -60,6 +60,8 @@ func (c *courseManager) DeleteCourse(id uint) error {
 	}
 	return nil
 }
+
+// CreateCourse 将镜像文件与课程绑定
 func (c *courseManager) CreateCourse(opt model.CreateCourseOpt) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("CreateCourse")

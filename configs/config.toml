@@ -15,11 +15,9 @@ user = "root"
 level = "trace"
 path = "logs/chat.log"
 
-[staticPath]
-filePath = "web/static/file/"
+[imageStorage]
+filePath = "/var/ecs"
 
-[msgChannelType]
-channelType = "gochannel"
-
-kafkaHosts = "kafka:9092"
-kafkaTopic = "go-chat-message"
+[nodeInfo]
+ip = "10.249.46.250"
+port = 16509
