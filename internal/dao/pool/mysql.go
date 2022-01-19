@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/pkg/config"
@@ -19,10 +20,24 @@ func init() {
 	Dbname := config.GetConfig().MySQL.Name       //数据库名
 	timeout := "10s"                              //连接超时，10秒
 
-	//拼接下dsn参数, dsn格式可以参考上面的语法，这里使用Sprintf动态拼接dsn参数，因为一般数据库连接参数，我们都是保存在配置文件里面，需要从配置文件加载参数，然后拼接dsn。
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local&timeout=%s", username, password, host, port, Dbname, timeout)
-	var err error
+	var dsn string
+	if config.GetConfig().Debug {
+		//拼接下dsn参数, dsn格式可以参考上面的语法，这里使用Sprintf动态拼接dsn参数，因为一般数据库连接参数，我们都是保存在配置文件里面，需要从配置文件加载参数，然后拼接dsn。
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local&timeout=%s", username, password, host, port, Dbname, timeout)
+	} else {
+		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(db:%d)/", username, password, port))
+		if err != nil {
+			panic(err)
+		}
+		_, err = db.Exec("CREATE DATABASE IF NOT EXISTS " + Dbname)
+		if err != nil {
+			panic(err)
+		}
+		db.Close()
 
+		dsn = fmt.Sprintf("%s:%s@tcp(db:%d)/%s?charset=utf8&parseTime=True&loc=Local&timeout=%s", username, password, port, Dbname, timeout)
+	}
+	var err error
 	//连接MYSQL, 获得DB类型实例，用于后面的数据库读写操作。
 	_db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),

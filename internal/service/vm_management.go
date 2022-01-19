@@ -1,16 +1,9 @@
 package service
 
 import (
-	"fmt"
-	"github.com/google/uuid"
 	"github.com/mini-ecs/back-end/internal/dao/pool"
-	"github.com/mini-ecs/back-end/internal/image_manager"
 	"github.com/mini-ecs/back-end/internal/model"
-	"github.com/mini-ecs/back-end/internal/virtlib"
-	"github.com/mini-ecs/back-end/pkg/config"
 	"github.com/mini-ecs/back-end/pkg/log"
-	"net"
-	"strconv"
 )
 
 var VMManager = new(vmManager)
@@ -71,42 +64,42 @@ func fakeCreateVM(vm *model.VM) {
 	vm.LibvirtXML = "/user/bin"
 	vm.StatusID = 1
 
-	//------------------------Image copy operations---------------------
-	vm.ImageFileLocation = uuid.New().String()
-	// 拷贝镜像
-	err := image_manager.LocalMachineImpl.Copy(
-		fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileLocation),
-		vm.SourceCourse.Image.Location,
-	)
-	if err != nil {
-		return
-	}
-
-	//-----------------------------------libvirt operations--------------------
-	ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
-	l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
-	if err != nil {
-		panic("generate env error: " + err.Error())
-	}
-	err = l.Connect()
-	if err != nil {
-		panic(err)
-	}
-	defer l.DisConnect()
-
-	d := virtlib.DefaultCreateDomainOpt
-	d.Uuid = uuid.New().String()
-	d.Name = vm.Name
-	d.Devices.Disk[1].Source.File = vm.ImageFileLocation
-	fmt.Printf("%+v\n", d)
-	err = l.CreateDomain(d)
-	if err != nil {
-		panic(err)
-	}
-	vm.IP, err = l.GetDomainIPAddress(vm.Name)
-	if err != nil {
-		panic(err)
-	}
+	////------------------------Image copy operations---------------------
+	//vm.ImageFileLocation = uuid.New().String()
+	//// 拷贝镜像
+	//err := image_manager.LocalMachineImpl.Copy(
+	//	fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileLocation),
+	//	vm.SourceCourse.Image.Location,
+	//)
+	//if err != nil {
+	//	return
+	//}
+	//
+	////-----------------------------------libvirt operations--------------------
+	//ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
+	//l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
+	//if err != nil {
+	//	panic("generate env error: " + err.Error())
+	//}
+	//err = l.Connect()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer l.DisConnect()
+	//
+	//d := virtlib.DefaultCreateDomainOpt
+	//d.Uuid = uuid.New().String()
+	//d.Name = vm.Name
+	//d.Devices.Disk[1].Source.File = vm.ImageFileLocation
+	//fmt.Printf("%+v\n", d)
+	//err = l.CreateDomain(d)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//vm.IP, err = l.GetDomainIPAddress(vm.Name)
+	//if err != nil {
+	//	panic(err)
+	//}
 	//------------------------------------------------------
 }
 func (v *vmManager) ModifyVM() {
@@ -122,29 +115,29 @@ func (v *vmManager) DeleteVM(id uint) error {
 		return db.Error
 	}
 
-	// libvirt operations ----------
-	ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
-	l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
-	if err != nil {
-		panic("generate env error: " + err.Error())
-	}
-	err = l.Connect()
-	if err != nil {
-		panic(err)
-	}
-	defer l.DisConnect()
-
-	// 销毁domain
-	err = l.DestroyDomain(vm.Name)
-	if err != nil {
-		return err
-	}
-	//删除镜像
-	err = image_manager.LocalMachineImpl.Delete(vm.ImageFileLocation)
-	if err != nil {
-		return err
-	}
-	// ------------------
+	//// libvirt operations ----------
+	//ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
+	//l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
+	//if err != nil {
+	//	panic("generate env error: " + err.Error())
+	//}
+	//err = l.Connect()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer l.DisConnect()
+	//
+	//// 销毁domain
+	//err = l.DestroyDomain(vm.Name)
+	//if err != nil {
+	//	return err
+	//}
+	////删除镜像
+	//err = image_manager.LocalMachineImpl.Delete(vm.ImageFileLocation)
+	//if err != nil {
+	//	return err
+	//}
+	//// ------------------
 
 	res = db.Unscoped().Delete(&vm)
 	if res.Error != nil {

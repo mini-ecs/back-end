@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ../
+      dockerfile: build/Dockerfile
+#    restart: always
+    secrets:
+      - db-password
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 9999:9999
+  db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+#    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    platform: linux/amd64
+    image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=miniecs
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: ../configs/password.txt

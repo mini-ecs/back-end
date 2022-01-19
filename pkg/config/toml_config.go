@@ -13,6 +13,7 @@ type TomlConfig struct {
 	Log          LogConfig
 	ImageStorage ImageStorage
 	NodeInfo     NodeInfo
+	Debug        bool
 }
 
 type Service struct {
