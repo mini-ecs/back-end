@@ -1,6 +1,7 @@
 package image_manager
 
 import (
+	"github.com/mini-ecs/back-end/pkg/log"
 	"io"
 	"os"
 )
@@ -19,6 +20,7 @@ type localMachineImpl struct {
 }
 
 func (l *localMachineImpl) Copy(new, old string) error {
+	log.GetGlobalLogger().Infof("destination=%v, source=%v", new, old)
 	src, err := os.Open(old)
 	if err != nil {
 		return err

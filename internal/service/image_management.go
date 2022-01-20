@@ -61,10 +61,10 @@ func (i *imageManagement) DeleteImage(id uint) error {
 	image.ID = id
 	db.Find(&image)
 
-	//err := image_manager.LocalMachineImpl.Delete(image.Location)
-	//if err != nil {
-	//	return err
-	//}
+	err := image_manager.LocalMachineImpl.Delete(image.Location)
+	if err != nil {
+		return err
+	}
 
 	res := db.Unscoped().Delete(&image)
 	if res.Error != nil {

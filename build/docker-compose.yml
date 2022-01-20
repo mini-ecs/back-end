@@ -42,7 +42,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - /home/fangaoyang/work/deployment/dist:/usr/share/nginx/html
+      - /var/nginx/dist:/usr/share/nginx/html
 volumes:
   db-data:
 secrets:

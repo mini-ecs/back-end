@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/digitalocean/go-libvirt"
 	"github.com/digitalocean/go-libvirt/socket/dialers"
+	"github.com/mini-ecs/back-end/pkg/config"
+	"github.com/mini-ecs/back-end/pkg/log"
 	"math"
 	"net"
 	"strconv"
@@ -51,6 +53,18 @@ func New(ip net.IP, port string) (*Lib, error) {
 	}, nil
 }
 
+func GetConnectedLib() *Lib {
+	ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
+	l, err := New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
+	if err != nil {
+		panic("generate env error: " + err.Error())
+	}
+	err = l.Connect()
+	if err != nil {
+		panic(err)
+	}
+	return l
+}
 func (l *Lib) Connect() error {
 	// todo: ip, port check
 	c, err := net.DialTimeout("tcp", fmt.Sprintf("%v:%v", l.ip.String(), l.port), 2*time.Second)
@@ -251,11 +265,12 @@ func (l *Lib) GetDomainIP(name string) {
 		panic(err)
 	}
 	fmt.Println(desc)
-
 }
 
 // GetDomainIPAddress 不知道为什么会返回一个数组
 func (l *Lib) GetDomainIPAddress(name string) (string, error) {
+	log.GetGlobalLogger().Infof("query %+v's ip", name)
+
 	d, err := l.GetDomainByName(name)
 	if err != nil {
 		return "", err
@@ -263,9 +278,13 @@ func (l *Lib) GetDomainIPAddress(name string) (string, error) {
 
 	addresses, err := l.con.DomainInterfaceAddresses(d, uint32(libvirt.DomainInterfaceAddressesSrcLease), 0)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return addresses[0].Addrs[0].Addr, nil
+	log.GetGlobalLogger().Infof("get ip address: %+v", addresses)
+	if len(addresses) > 0 && len(addresses[0].Addrs) > 0 {
+		return addresses[0].Addrs[0].Addr, nil
+	}
+	return "", nil
 }
 
 func (l *Lib) CreateSnapshot(name string, opt DomainSnapshot) error {

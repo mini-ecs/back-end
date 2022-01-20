@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/pkg/config"
+	"github.com/mini-ecs/back-end/pkg/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,9 +23,11 @@ func init() {
 
 	var dsn string
 	if config.GetConfig().Debug {
+		log.GetGlobalLogger().Infof("DebugMode: true")
 		//拼接下dsn参数, dsn格式可以参考上面的语法，这里使用Sprintf动态拼接dsn参数，因为一般数据库连接参数，我们都是保存在配置文件里面，需要从配置文件加载参数，然后拼接dsn。
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local&timeout=%s", username, password, host, port, Dbname, timeout)
 	} else {
+		log.GetGlobalLogger().Infof("DebugMode: false")
 		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(db:%d)/", username, password, port))
 		if err != nil {
 			panic(err)

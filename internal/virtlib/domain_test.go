@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var domainName = "testlib"
+var domainName = "qwe"
 
 func GenerateEnv() *Lib {
 	ip := net.ParseIP("10.249.46.250")
@@ -33,7 +33,6 @@ func TestLib_GetDomainIP(t *testing.T) {
 	i1, err := l.GetDomainIPAddress(domainName)
 	assert.Equal(t, err, nil)
 	fmt.Printf("%+v\n", i1)
-	l.GetDomainIP(domainName)
 }
 
 func TestLib_NewDomainOpt(t *testing.T) {
@@ -41,7 +40,7 @@ func TestLib_NewDomainOpt(t *testing.T) {
   <name>ubuntu</name>
   <uuid>c7a5fdbd-cdaf-9455-926a-d65c16db1809</uuid>
   <memory unit="GiB">4</memory>
-  <currentMemor unit="GiB">4</currentMemor>
+  <currentMemory unit="GiB">4</currentMemory>
   <vcpu>4</vcpu>
   <os>
     <type arch='x86_64' machine='pc'>hvm</type>

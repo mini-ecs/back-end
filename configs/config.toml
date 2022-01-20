@@ -5,7 +5,7 @@ debug = true
 port = "9999"
 
 [mysql]
-host = "127.0.0.1"
+host = "10.249.46.250"
 name = "miniecs"
 password = "123456"
 port = 3306
@@ -17,7 +17,7 @@ level = "trace"
 path = "logs/chat.log"
 
 [imageStorage]
-filePath = "/var/ecs"
+filePath = "/home/fangaoyang/work"
 
 [nodeInfo]
 ip = "10.249.46.250"
