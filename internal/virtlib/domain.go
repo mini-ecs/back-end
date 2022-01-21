@@ -163,16 +163,11 @@ func (l *Lib) CreateDomain(opt DomainCreateOpt) error {
 	if err != nil {
 		return err
 	}
-	//err = ioutil.WriteFile("create.xml", xmls, 0666)
-	//if err != nil {
-	//	return err
-	//}
-	domain, err := l.con.DomainCreateXML(string(xmls), 0)
+	domain, err := l.con.DomainDefineXML(string(xmls))
 	if err != nil {
 		return err
 	}
-	fmt.Println(domain)
-	return nil
+	return l.StartDomain(domain.Name)
 }
 
 func (l *Lib) StartDomain(name string) error {
@@ -287,18 +282,30 @@ func (l *Lib) GetDomainIPAddress(name string) (string, error) {
 	return "", nil
 }
 
+// CreateSnapshot
+// 		libvirt不支持对于external snapshot的管理操作：恢复快照、删除快照会有如下报错:
+//		unsupported configuration: deletion of 1 external disk snapshots not supported yet.
+//		而如果在创建快照时flag为libvirt.DomainSnapshotCreateDiskOnly（libvirt.DomainSnapshotCreateFlags）时，
+//		快照会被保存到外部，即快照是external的。这就需要手动来管理这些external的快照。
+//
+//		创建：将 libvirt.DomainSnapshotCreateFlags 传入函数，即可在Domain对应的镜像文件所在的目录中生成一个镜像文件，
+//			镜像文件的后缀是snapshot的名称。
+//		回滚：只能调用带 libvirt.DomainSnapshotDeleteMetadataOnly flag的函数，删除镜像元数据，然后手动将xml中的镜像
+//			文件修改为parent的快照，并删除要删除的镜像文件。
+//
+//		手工操作可参考： https://fabianlee.org/2021/01/10/kvm-creating-and-reverting-libvirt-external-snapshots/
 func (l *Lib) CreateSnapshot(name string, opt DomainSnapshot) error {
 	domain, err := l.GetDomainByName(name)
 	if err != nil {
 		return err
 	}
-	xmls, err := xml.Marshal(opt)
+	xmlResult, err := xml.Marshal(opt)
 	if err != nil {
 		return err
 	}
 	//libvirt.DomainSnapshotCreateFlags
-	//diskOnly := libvirt.DomainSnapshotCreateDiskOnly 只保存磁盘则使用该flag
-	createXML, err := l.con.DomainSnapshotCreateXML(domain, string(xmls), 0)
+	//diskOnly := libvirt.DomainSnapshotCreateDiskOnly // 只保存磁盘则使用该flag
+	createXML, err := l.con.DomainSnapshotCreateXML(domain, string(xmlResult), 0)
 	if err != nil {
 		return err
 	}
@@ -320,6 +327,33 @@ func (l *Lib) RevertSnapshot(name string) error {
 		return err
 	}
 	return nil
+}
+
+func (l *Lib) GetSnapshotByName(domain, snapshotName string) (libvirt.DomainSnapshot, error) {
+	d, err := l.GetDomainByName(domain)
+	if err != nil {
+		return libvirt.DomainSnapshot{}, err
+	}
+	snapshot, err := l.con.DomainSnapshotLookupByName(d, snapshotName, 0)
+	if err != nil {
+		return libvirt.DomainSnapshot{}, err
+	}
+	return snapshot, nil
+}
+
+// DeleteSnapshot
+// 		args: libvirt.DomainSnapshotDeleteChildren 此快照和任何后代快照都将被删除
+// 		libvirt.DomainSnapshotDeleteChildrenOnly 删除任何后代快照，但保留此快照
+// 		libvirt.DomainSnapshotDeleteMetadataOnly 任何由libvirt追踪的快照元数据都会被移除，同时保持快照内容不变；
+// 		如果管理程序不需要任何libvirt元数据来追踪快照，那么这个标志会被默默地忽略。
+//		=> 可以删除external快照的metadata，但不删除文件，需要手动管理文件
+//
+func (l *Lib) DeleteSnapshot(name, snapshotName string, args libvirt.DomainSnapshotDeleteFlags) error {
+	snapshot, err := l.GetSnapshotByName(name, snapshotName)
+	if err != nil {
+		return err
+	}
+	return l.con.DomainSnapshotDelete(snapshot, args)
 }
 
 func (l *Lib) ListSnapshots(name string) ([]libvirt.DomainSnapshot, error) {

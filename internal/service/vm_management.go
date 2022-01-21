@@ -9,8 +9,6 @@ import (
 	"github.com/mini-ecs/back-end/internal/virtlib"
 	"github.com/mini-ecs/back-end/pkg/config"
 	"github.com/mini-ecs/back-end/pkg/log"
-	"net"
-	"strconv"
 )
 
 var VMManager = new(vmManager)
@@ -27,30 +25,31 @@ func (v *vmManager) GetVMList() []model.VM {
 		log.GetGlobalLogger().Error(res.Error)
 	}
 	l := virtlib.GetConnectedLib()
+	defer l.DisConnect()
 	// todo: 可以加个缓存来减少查询次数
 	for i := range vms {
 		db.Find(&vms[i].Creator, "ID = ?", vms[i].CreatorID)
-		db.Find(&vms[i].Status, "ID = ?", vms[i].StatusID)
 		db.Find(&vms[i].SourceCourse, "ID = ?", vms[i].SourceCourseID)
 		db.Find(&vms[i].SourceCourse.MachineConfig, "ID = ?", vms[i].SourceCourse.MachineConfigID)
 		// virtual machine is still preparing
 		if vms[i].IP == "" {
 			var err error
-			log.GetGlobalLogger().Infof("vm list %+v", vms[i])
 			vms[i].IP, err = l.GetDomainIPAddress(vms[i].Name)
 			if err != nil {
 				log.GetGlobalLogger().Infof("get ip address error: %v", err)
 				continue
 			}
-			//// virtual machine is ok, so it has ip address, set the status to running
-			//if vms[i].IP != "" {
-			//	status := model.Status{Status: "running"}
-			//	db.First(&status)
-			//	vms[i].StatusID = status.ID
-			//	db.Save(vms[i])
-			//}
+			// virtual machine is ok, so it has ip address, set the status to running
+			if vms[i].IP != "" {
+				status := model.Status{}
+				db.First(&status, "status = ?", "running")
+				vms[i].StatusID = status.ID
+				db.Model(&vms[i]).Update("status_id", status.ID)
+			}
 		}
 		// default status is pending
+		db.Find(&vms[i].Status, "ID = ?", vms[i].StatusID)
+		//log.GetGlobalLogger().Infof("vm state: %+v", vms[i])
 	}
 	return vms
 }
@@ -75,8 +74,9 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	if res.Error != nil {
 		return res.Error
 	}
-	status := model.Status{Status: "pending"}
-	res = db.First(&status)
+	status := model.Status{}
+	res = db.First(&status, "status = ?", "pending")
+	log.GetGlobalLogger().Errorf("get status: %+v", status)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -97,15 +97,14 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 }
 
 func fakeCreateVM(vm *model.VM) {
-	vm.Port = "999"
-	vm.LibvirtXML = "/user/bin"
-	vm.StatusID = 1
+	//vm.Port = "999"
+	//vm.LibvirtXML = "/user/bin"
 
 	//------------------------Image copy operations---------------------
-	vm.ImageFileLocation = uuid.New().String()
+	vm.ImageFileName = uuid.New().String()
 	// 拷贝镜像
 	err := image_manager.LocalMachineImpl.Copy(
-		fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileLocation),
+		fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName),
 		vm.SourceCourse.Image.Location,
 	)
 	if err != nil {
@@ -113,31 +112,17 @@ func fakeCreateVM(vm *model.VM) {
 	}
 
 	//-----------------------------------libvirt operations--------------------
-	ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
-	l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
-	if err != nil {
-		panic("generate env error: " + err.Error())
-	}
-	err = l.Connect()
-	if err != nil {
-		panic(err)
-	}
+	l := virtlib.GetConnectedLib()
 	defer l.DisConnect()
-
 	d := virtlib.DefaultCreateDomainOpt
 	d.Uuid = uuid.New().String()
 	d.Name = vm.Name
-	d.Devices.Disk[1].Source.File = fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileLocation)
+	d.Devices.Disk[1].Source.File = fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName)
 	fmt.Printf("%+v\n", d)
 	err = l.CreateDomain(d)
 	if err != nil {
 		panic(err)
 	}
-
-	//vm.IP, err = l.GetDomainIPAddress(vm.Name)
-	//if err != nil {
-	//	panic(err)
-	//}
 	//------------------------------------------------------
 }
 func (v *vmManager) ModifyVM() {
@@ -149,33 +134,24 @@ func (v *vmManager) DeleteVM(id uint) error {
 	vm := model.VM{}
 	vm.ID = id
 	res := db.First(&vm)
-	if db.Error != nil {
+	if res.Error != nil {
 		return db.Error
 	}
 
 	//// libvirt operations ----------
-	ip := net.ParseIP(config.GetConfig().NodeInfo.Ip)
-	l, err := virtlib.New(ip, strconv.Itoa(int(config.GetConfig().NodeInfo.Port)))
-	if err != nil {
-		panic("generate env error: " + err.Error())
-	}
-	err = l.Connect()
-	if err != nil {
-		panic(err)
-	}
+	l := virtlib.GetConnectedLib()
 	defer l.DisConnect()
 
 	// 销毁domain
-	err = l.DestroyDomain(vm.Name)
+	err := l.DestroyDomain(vm.Name)
 	if err != nil {
 		return err
 	}
 	//删除镜像
-	err = image_manager.LocalMachineImpl.Delete(vm.ImageFileLocation)
+	err = image_manager.LocalMachineImpl.Delete(fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName))
 	if err != nil {
 		return err
 	}
-	// ------------------
 
 	res = db.Unscoped().Delete(&vm)
 	if res.Error != nil {
@@ -184,11 +160,40 @@ func (v *vmManager) DeleteVM(id uint) error {
 	}
 	return nil
 }
-func (v *vmManager) MakeSnapshotWithVM() {
-
+func (v *vmManager) MakeSnapshotWithVM(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	defer l.DisConnect()
+	snapshots, _ := l.ListSnapshots(vm.Name)
+	cnt := len(snapshots)
+	opt := virtlib.DomainSnapshot{
+		Name: fmt.Sprintf("%v-snap%v", vm.Name, cnt+1),
+	}
+	return l.CreateSnapshot(vm.Name, opt)
 }
-func (v *vmManager) MakeImageWithVM() {
 
+// MakeImageWithVM todo: 将该函数改进为，删除所有的快照
+func (v *vmManager) MakeImageWithVM(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return db.Error
+	}
+	// make sure the vm has stopped
+	imagePath := fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName)
+	name := fmt.Sprintf("%v's image", vm.ImageFileName)
+	newPath := fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, name)
+	return image_manager.LocalMachineImpl.Copy(newPath, imagePath)
 }
 func (v *vmManager) ResetVMWithSnapshot() {
 

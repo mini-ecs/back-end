@@ -127,7 +127,7 @@ func DeleteVM(c *gin.Context) {
 // @Router       /vm/snapshot [post]
 func MakeSnapshotWithVM(c *gin.Context) {
 	logger.Infof("MakeSnapshotWithVM")
-	service.VMManager.MakeSnapshotWithVM()
+	//service.VMManager.MakeSnapshotWithVM()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }
 
@@ -143,7 +143,7 @@ func MakeSnapshotWithVM(c *gin.Context) {
 // @Router       /vm/image [post]
 func MakeImageWithVM(c *gin.Context) {
 	logger.Infof("MakeImageWithVM")
-	service.VMManager.MakeImageWithVM()
+	//service.VMManager.MakeImageWithVM()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }
 
@@ -159,6 +159,6 @@ func MakeImageWithVM(c *gin.Context) {
 // @Router       /vm/snapshot [patch]
 func ResetVMWithSnapshot(c *gin.Context) {
 	logger.Infof("ResetVMWithSnapshot")
-	service.VMManager.MakeSnapshotWithVM()
+	//service.VMManager.MakeSnapshotWithVM()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }

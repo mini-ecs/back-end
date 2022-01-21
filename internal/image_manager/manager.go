@@ -39,6 +39,7 @@ func (l *localMachineImpl) Copy(new, old string) error {
 }
 
 func (l *localMachineImpl) Delete(image string) error {
+	log.GetGlobalLogger().Infof("Deleteing image: %v", image)
 	err := os.Remove(image)
 	if err != nil {
 		return err
