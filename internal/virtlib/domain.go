@@ -188,11 +188,7 @@ func (l *Lib) ShutdownDomain(name string) error {
 	if err != nil {
 		return err
 	}
-	err = l.con.DomainShutdown(d)
-	if err != nil {
-		return err
-	}
-	return nil
+	return l.con.DomainDestroy(d)
 }
 
 // DestroyDomain 删除
@@ -201,11 +197,7 @@ func (l *Lib) DestroyDomain(name string) error {
 	if err != nil {
 		return err
 	}
-	err = l.con.DomainDestroy(d)
-	if err != nil {
-		return err
-	}
-	return nil
+	return l.con.DomainDestroy(d)
 }
 
 // RebootDomain 重启
@@ -215,11 +207,7 @@ func (l *Lib) RebootDomain(name string) error {
 		return err
 	}
 	// libvirt.DomainRebootFlagValues
-	err = l.con.DomainReboot(d, 0)
-	if err != nil {
-		return err
-	}
-	return nil
+	return l.con.DomainReset(d, 0)
 }
 
 // SuspendDomain 挂起

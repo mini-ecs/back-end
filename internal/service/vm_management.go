@@ -294,3 +294,55 @@ func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 func (v *vmManager) ResetVMWithSnapshot() {
 
 }
+func (v *vmManager) ShutdownVM(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	err := l.ShutdownDomain(vm.Name)
+	if err != nil {
+		return err
+	}
+	state := model.Status{}
+	db.Find(&state, "status = ?", "unstart")
+	db.Model(&vm).Update("status_id", state.ID)
+	return nil
+}
+
+func (v *vmManager) RebootVM(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	return l.RebootDomain(vm.Name)
+}
+
+func (v *vmManager) StartVM(id uint) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	err := l.StartDomain(vm.Name)
+	if err != nil {
+		return err
+	}
+	state := model.Status{}
+	db.Find(&state, "status = ?", "running")
+	db.Model(&vm).Update("status_id", state.ID)
+	return nil
+}

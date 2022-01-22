@@ -176,3 +176,51 @@ func ResetVMWithSnapshot(c *gin.Context) {
 	//service.VMManager.MakeSnapshotWithVM()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
 }
+
+func ShutDownVM(c *gin.Context) {
+	logger.Infof("ShutDownVM")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	err = service.VMManager.ShutdownVM(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
+}
+
+func RebootVM(c *gin.Context) {
+	logger.Infof("ShutDownVM")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	err = service.VMManager.RebootVM(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
+}
+
+func StartVM(c *gin.Context) {
+	logger.Infof("ShutDownVM")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	err = service.VMManager.StartVM(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
+}
