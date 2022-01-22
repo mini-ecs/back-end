@@ -52,7 +52,7 @@ func NewRouter() *gin.Engine {
 		group.PUT("/vm/:uuid", Auth(), v1.ModifyVM)
 		group.DELETE("/vm/:uuid", Auth(), v1.DeleteVM)
 		group.POST("/vm", Auth(), v1.CreateVM)
-		group.POST("/vm/image", Auth(), v1.MakeImageWithVM)
+		group.POST("/vm/image/:uuid", Auth(), v1.MakeImageWithVM)
 		group.POST("/vm/snapshot", Auth(), v1.MakeSnapshotWithVM)
 		group.PATCH("/vm/snapshot", Auth(), v1.ResetVMWithSnapshot)
 

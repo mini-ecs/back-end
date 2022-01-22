@@ -50,7 +50,7 @@ func init() {
 	}
 
 	sqlDB, _ := _db.DB()
-	err = _db.AutoMigrate(&model.VM{}, &model.User{}, &model.UserType{}, &model.ImageOrSnapshot{})
+	err = _db.AutoMigrate(&model.VM{}, &model.User{}, &model.UserType{}, &model.ImageOrSnapshot{}, &model.Snapshot{})
 	if err != nil {
 		panic(err)
 	}

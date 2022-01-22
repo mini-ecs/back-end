@@ -5,6 +5,7 @@ const (
 	ErrorUnauthorized
 	ErrorDBOperation
 	ErrorLogin
+	ErrorInternal
 )
 
 const (

@@ -304,8 +304,8 @@ func (l *Lib) CreateSnapshot(name string, opt DomainSnapshot) error {
 		return err
 	}
 	//libvirt.DomainSnapshotCreateFlags
-	//diskOnly := libvirt.DomainSnapshotCreateDiskOnly // 只保存磁盘则使用该flag
-	createXML, err := l.con.DomainSnapshotCreateXML(domain, string(xmlResult), 0)
+	diskOnly := libvirt.DomainSnapshotCreateDiskOnly // 只保存磁盘则使用该flag
+	createXML, err := l.con.DomainSnapshotCreateXML(domain, string(xmlResult), uint32(diskOnly))
 	if err != nil {
 		return err
 	}
@@ -366,6 +366,30 @@ func (l *Lib) ListSnapshots(name string) ([]libvirt.DomainSnapshot, error) {
 		return nil, err
 	}
 	return snapshots, nil
+}
+
+func (l *Lib) PullAllSnapshots(domainName string) error {
+	domain, err := l.GetDomainByName(domainName)
+	if err != nil {
+		return err
+	}
+	// 确认是否有快照，没有快照，则说明已经只有一份镜像了
+	_, err = l.GetCurrentSnapshot(domainName)
+	if err != nil {
+		return nil
+	}
+
+	//d := l.GetDomainXML(domainName)
+	//err := l.con.DomainBlockPull(domain, d.Devices.Disk[0].Source.File, 0, 0)
+	return l.con.DomainBlockPull(domain, "hda", 0, 0)
+}
+
+func (l *Lib) GetCurrentSnapshot(domainName string) (libvirt.DomainSnapshot, error) {
+	domain, err := l.GetDomainByName(domainName)
+	if err != nil {
+		return libvirt.DomainSnapshot{}, err
+	}
+	return l.con.DomainSnapshotCurrent(domain, 0)
 }
 
 func (l *Lib) GetAllInterfaces() {

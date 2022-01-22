@@ -143,8 +143,22 @@ func MakeSnapshotWithVM(c *gin.Context) {
 // @Router       /vm/image [post]
 func MakeImageWithVM(c *gin.Context) {
 	logger.Infof("MakeImageWithVM")
-	//service.VMManager.MakeImageWithVM()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	cookie, err := c.Cookie("uuid")
+	if err != nil {
+		panic(err)
+	}
+	err = service.VMManager.MakeImageWithVM(uint(id), "test", cookie)
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
 }
 
 // ResetVMWithSnapshot godoc

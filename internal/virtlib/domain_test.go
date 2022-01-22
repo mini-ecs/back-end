@@ -160,7 +160,7 @@ func TestLib_DestroyDomain(t *testing.T) {
 func TestLib_CreateSnapshot(t *testing.T) {
 	l := GenerateEnv()
 	opt := DomainSnapshot{
-		Name: "six",
+		Name: "forth",
 	}
 	err := l.CreateSnapshot(domainName, opt)
 	assert.Equal(t, err, nil)

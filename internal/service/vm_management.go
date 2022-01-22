@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
 	"github.com/mini-ecs/back-end/internal/dao/pool"
 	"github.com/mini-ecs/back-end/internal/image_manager"
@@ -88,27 +89,27 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 		StatusID:       status.ID,
 	}
 
-	fakeCreateVM(&vm)
-	res = db.Create(&vm)
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
-}
-
-func fakeCreateVM(vm *model.VM) {
-	//vm.Port = "999"
-	//vm.LibvirtXML = "/user/bin"
-
 	//------------------------Image copy operations---------------------
-	vm.ImageFileName = uuid.New().String()
+	// 注意，该文件是最基本的镜像文件，此后创建的快照都会在改文件后添加".Snapshot"样式的后缀
+	// 用数据库记录该实例拥有的快照的地址，以便于后续操作管理(删除、恢复、合并快照)
+	vm.BaseImageFileName = uuid.New().String()
+	snapshotPath := getImageFilePath(vm.BaseImageFileName)
 	// 拷贝镜像
 	err := image_manager.LocalMachineImpl.Copy(
-		fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName),
+		snapshotPath,
 		vm.SourceCourse.Image.Location,
 	)
 	if err != nil {
 		panic(err)
+	}
+	snapshot := model.Snapshot{
+		VMName:           vm.Name,
+		SnapshotName:     vm.BaseImageFileName,
+		SnapshotLocation: snapshotPath,
+	}
+	res = db.Create(&snapshot)
+	if res.Error != nil {
+		panic(res.Error)
 	}
 
 	//-----------------------------------libvirt operations--------------------
@@ -117,13 +118,22 @@ func fakeCreateVM(vm *model.VM) {
 	d := virtlib.DefaultCreateDomainOpt
 	d.Uuid = uuid.New().String()
 	d.Name = vm.Name
-	d.Devices.Disk[1].Source.File = fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName)
+	d.Devices.Disk[1].Source.File = getImageFilePath(vm.BaseImageFileName)
 	fmt.Printf("%+v\n", d)
 	err = l.CreateDomain(d)
 	if err != nil {
 		panic(err)
 	}
 	//------------------------------------------------------
+
+	res = db.Create(&vm)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+func getImageFilePath(imageName string) string {
+	return fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, imageName)
 }
 func (v *vmManager) ModifyVM() {
 
@@ -148,9 +158,16 @@ func (v *vmManager) DeleteVM(id uint) error {
 		return err
 	}
 	//删除镜像
-	err = image_manager.LocalMachineImpl.Delete(fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName))
-	if err != nil {
-		return err
+	var snapshots []model.Snapshot
+	res = db.Find(snapshots, "vm_name = ?", vm.Name)
+	if res.Error != nil {
+		return res.Error
+	}
+	for _, v := range snapshots {
+		err = image_manager.LocalMachineImpl.Delete(v.SnapshotLocation)
+		if err != nil {
+			log.GetGlobalLogger().Errorln(err)
+		}
 	}
 
 	res = db.Unscoped().Delete(&vm)
@@ -160,6 +177,7 @@ func (v *vmManager) DeleteVM(id uint) error {
 	}
 	return nil
 }
+
 func (v *vmManager) MakeSnapshotWithVM(id uint) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
@@ -174,26 +192,104 @@ func (v *vmManager) MakeSnapshotWithVM(id uint) error {
 	snapshots, _ := l.ListSnapshots(vm.Name)
 	cnt := len(snapshots)
 	opt := virtlib.DomainSnapshot{
-		Name: fmt.Sprintf("%v-snap%v", vm.Name, cnt+1),
+		Name: fmt.Sprintf("snap-%v", cnt+1),
+	}
+	snapshot := model.Snapshot{
+		VMName:           vm.Name,
+		SnapshotName:     opt.Name,
+		SnapshotLocation: getImageFilePath(vm.BaseImageFileName) + "." + opt.Name,
+	}
+	res = db.Create(&snapshot)
+	if res.Error != nil {
+		return db.Error
 	}
 	return l.CreateSnapshot(vm.Name, opt)
 }
 
-// MakeImageWithVM todo: 将该函数改进为，删除所有的快照
-func (v *vmManager) MakeImageWithVM(id uint) error {
+// MakeImageWithVM 合并所有快照，只保留最后合并的快照，其余快照将被删除，然后以传入的名字创建一个新镜像
+func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 	db := pool.GetDB()
-	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
+	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
 	vm := model.VM{}
 	vm.ID = id
 	res := db.First(&vm)
 	if res.Error != nil {
 		return db.Error
 	}
+
+	l := virtlib.GetConnectedLib()
+	defer l.DisConnect()
+	// 确认是否有快照，没有快照，则说明已经只有一份镜像了
+	// 获取当前快照
+	cur, err := l.GetCurrentSnapshot(vm.Name)
+	var curSnap model.Snapshot
+	if err == nil {
+		//将所有的快照都合并到最新的镜像文件中，此时老文件都没用了
+		err = l.PullAllSnapshots(vm.Name)
+		if err != nil {
+			return err
+		}
+		// 获取所有快照
+		snapshots, err := l.ListSnapshots(vm.Name)
+		if err != nil {
+			return err
+		}
+		// 删除除了当前快照之外的所有快照的元数据和真实文件
+		for _, v := range snapshots {
+			// 从db获取snapshot数据
+			snapshot := model.Snapshot{}
+			res = db.Find(&snapshot, "snapshot_name = ?", v.Name)
+			if res.Error != nil {
+				log.GetGlobalLogger().Errorf("Deleteing snapshot, get %v error: %v", v.Name, res.Error)
+				continue
+			}
+			// 如果是当前的快照，则获取一下其地址
+			if cur.Name == v.Name {
+				curSnap = snapshot
+				continue
+			}
+			// 删除文件
+			err := image_manager.LocalMachineImpl.Delete(snapshot.SnapshotLocation)
+			if err != nil {
+				log.GetGlobalLogger().Errorf("Deleteing snapshot, get %v error: %v", v.Name, err)
+				continue
+			}
+			// 清除数据库记录
+			res = db.Delete(&snapshot)
+			if res.Error != nil {
+				log.GetGlobalLogger().Errorf("Deleteing snapshot, get %v error: %v", v.Name, res.Error)
+				continue
+			}
+			// 删除快照元数据
+			err = l.DeleteSnapshot(vm.Name, v.Name, libvirt.DomainSnapshotDeleteMetadataOnly)
+			if err != nil {
+				log.GetGlobalLogger().Errorln(err)
+				continue
+			}
+		}
+	} else {
+		// 不存在快照，则把这个值赋为当前使用的镜像路径
+		curSnap.SnapshotLocation = getImageFilePath(vm.BaseImageFileName)
+	}
+	log.GetGlobalLogger().Infof("开始拷贝镜像")
 	// make sure the vm has stopped
-	imagePath := fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, vm.ImageFileName)
-	name := fmt.Sprintf("%v's image", vm.ImageFileName)
-	newPath := fmt.Sprintf("%v/%v", config.GetConfig().ImageStorage.FilePath, name)
-	return image_manager.LocalMachineImpl.Copy(newPath, imagePath)
+	newPath := getImageFilePath(imageName)
+	err = image_manager.LocalMachineImpl.Copy(newPath, curSnap.SnapshotLocation)
+	if err != nil {
+		return err
+	}
+	// 创建数据库的镜像记录
+	creator := model.User{Uuid: userUUid}
+	res = db.First(&creator)
+	image := model.ImageOrSnapshot{
+		Type:         "image",
+		Location:     newPath,
+		GenerateType: 1,
+		Name:         imageName,
+		Creator:      creator,
+	}
+	res = db.Create(&image)
+	return res.Error
 }
 func (v *vmManager) ResetVMWithSnapshot() {
 
