@@ -33,8 +33,9 @@ func (u *userService) Register(user *model.User) error {
 		return me_errors.New("user already exists")
 	}
 	user.Uuid = uuid.New().String()
-	user.UserType = model.UserType{Type: "student"}
-
+	userType := model.UserType{Type: "student"}
+	db.First(&userType, "type = ?", "student")
+	user.UserTypeID = userType.ID
 	db.Create(&user)
 	return nil
 }
@@ -43,5 +44,6 @@ func (u *userService) CurrentUser(uuid string) model.User {
 
 	queryUser := &model.User{}
 	db.First(&queryUser, "uuid = ?", uuid)
+	db.Find(&queryUser.UserType, "ID = ?", queryUser.UserTypeID)
 	return *queryUser
 }

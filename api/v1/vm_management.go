@@ -22,7 +22,11 @@ import (
 // @Router       /vm [get]
 func GetVMList(c *gin.Context) {
 	logger.Infof("GetVMList")
-	vms := service.VMManager.GetVMList()
+	userUUID, err := c.Cookie("uuid")
+	if err != nil {
+		panic(err)
+	}
+	vms := service.VMManager.GetVMList(userUUID)
 	c.JSON(http.StatusOK, response.SuccessMsg(vms))
 }
 

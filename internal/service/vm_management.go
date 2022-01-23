@@ -17,7 +17,7 @@ var VMManager = new(vmManager)
 type vmManager struct {
 }
 
-func (v *vmManager) GetVMList() []model.VM {
+func (v *vmManager) GetVMList(uuid string) []model.VM {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("GetVMList")
 	var vms []model.VM
@@ -52,7 +52,13 @@ func (v *vmManager) GetVMList() []model.VM {
 		db.Find(&vms[i].Status, "ID = ?", vms[i].StatusID)
 		//log.GetGlobalLogger().Infof("vm state: %+v", vms[i])
 	}
-	return vms
+	ret := make([]model.VM, 0)
+	for _, v := range vms {
+		if v.Creator.Uuid == uuid {
+			ret = append(ret, v)
+		}
+	}
+	return ret
 }
 func (v *vmManager) GetSpecificVM() {
 
@@ -157,9 +163,13 @@ func (v *vmManager) DeleteVM(id uint) error {
 	if err != nil {
 		return err
 	}
+	err = l.UnDefineDomain(vm.Name)
+	if err != nil {
+		return err
+	}
 	//删除镜像
 	var snapshots []model.Snapshot
-	res = db.Find(snapshots, "vm_name = ?", vm.Name)
+	res = db.Find(&snapshots, "vm_name = ?", vm.Name)
 	if res.Error != nil {
 		return res.Error
 	}

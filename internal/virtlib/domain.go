@@ -236,6 +236,14 @@ func (l *Lib) ResumeDomain(name string) error {
 	return nil
 }
 
+func (l *Lib) UnDefineDomain(name string) error {
+	d, err := l.GetDomainByName(name)
+	if err != nil {
+		return err
+	}
+	return l.con.DomainUndefine(d)
+}
+
 // GetDomainIP error
 func (l *Lib) GetDomainIP(name string) {
 	mac := l.getDomainBridgeName(name)
