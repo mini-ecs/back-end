@@ -127,7 +127,11 @@ func DeleteCourse(c *gin.Context) {
 		logger.Errorf("parse string to int error: %v", err)
 		return
 	}
-	err = service.CourseManager.DeleteCourse(uint(id))
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		logger.Errorln(err)
+	}
+	err = service.CourseManager.DeleteCourse(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
 		return

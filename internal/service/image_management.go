@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/mini-ecs/back-end/internal/dao/pool"
 	"github.com/mini-ecs/back-end/internal/image_manager"
 	"github.com/mini-ecs/back-end/internal/model"
@@ -54,19 +55,42 @@ func (i *imageManagement) ModifyImage() {
 
 }
 
-func (i *imageManagement) DeleteImage(id uint) error {
+func (i *imageManagement) DeleteImage(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
 	image := model.ImageOrSnapshot{}
 	image.ID = id
-	db.Find(&image)
+	res := db.Find(&image)
+	if res.Error != nil {
+		log.GetGlobalLogger().Errorln(res.Error)
+	}
+	res = db.Find(&image.Creator, "id = ?", image.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&image.Creator.UserType, "id = ?", image.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && image.Creator.Uuid != userID {
+		return errors.New("unauthorized operation")
+	}
 
 	err := image_manager.LocalMachineImpl.Delete(image.Location)
 	if err != nil {
 		return err
 	}
 
-	res := db.Unscoped().Delete(&image)
+	res = db.Unscoped().Delete(&image)
 	if res.Error != nil {
 		log.GetGlobalLogger().Error(res.Error)
 		return res.Error

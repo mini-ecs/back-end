@@ -111,7 +111,11 @@ func DeleteVM(c *gin.Context) {
 		logger.Errorf("parse string to int error: %v", err)
 		return
 	}
-	err = service.VMManager.DeleteVM(uint(id))
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		panic(err)
+	}
+	err = service.VMManager.DeleteVM(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
 		return
@@ -189,7 +193,12 @@ func ShutDownVM(c *gin.Context) {
 		logger.Errorf("parse string to int error: %v", err)
 		return
 	}
-	err = service.VMManager.ShutdownVM(uint(id))
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		logger.Errorln(err)
+		return
+	}
+	err = service.VMManager.ShutdownVM(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
 		return
@@ -205,7 +214,12 @@ func RebootVM(c *gin.Context) {
 		logger.Errorf("parse string to int error: %v", err)
 		return
 	}
-	err = service.VMManager.RebootVM(uint(id))
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		logger.Errorln(err)
+		return
+	}
+	err = service.VMManager.RebootVM(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
 		return
@@ -221,7 +235,12 @@ func StartVM(c *gin.Context) {
 		logger.Errorf("parse string to int error: %v", err)
 		return
 	}
-	err = service.VMManager.StartVM(uint(id))
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		logger.Errorln(err)
+		return
+	}
+	err = service.VMManager.StartVM(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorInternal, err.Error()))
 		return

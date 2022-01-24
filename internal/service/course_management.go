@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/mini-ecs/back-end/internal/dao/pool"
 	"github.com/mini-ecs/back-end/internal/model"
 	"github.com/mini-ecs/back-end/pkg/log"
@@ -48,7 +49,7 @@ func (c *courseManager) GetCourseLisCreateCourse() {
 func (c *courseManager) ModifyCourse() {
 
 }
-func (c *courseManager) DeleteCourse(id uint) error {
+func (c *courseManager) DeleteCourse(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
 	course := model.Course{}
@@ -57,6 +58,26 @@ func (c *courseManager) DeleteCourse(id uint) error {
 	if res.Error != nil {
 		log.GetGlobalLogger().Error(res.Error)
 		return res.Error
+	}
+	res = db.Find(&course.Teacher, "id = ?", course.TeacherID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&course.Teacher.UserType, "id = ?", course.Teacher.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && course.Teacher.Uuid != userID {
+		return errors.New("unauthorized operation")
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
@@ -52,6 +53,19 @@ func (v *vmManager) GetVMList(uuid string) []model.VM {
 		db.Find(&vms[i].Status, "ID = ?", vms[i].StatusID)
 		//log.GetGlobalLogger().Infof("vm state: %+v", vms[i])
 	}
+	// 如果用户是admin，则返回所有列表，否则只返回自己创建的
+	user := model.User{}
+	res = db.First(&user, "uuid = ?", uuid)
+	if res.Error != nil {
+		log.GetGlobalLogger().Errorln(res.Error)
+	}
+	res = db.First(&user.UserType, "id = ?", user.UserTypeID)
+	if res.Error != nil {
+		log.GetGlobalLogger().Errorln(res.Error)
+	}
+	if user.UserType.Type == "admin" {
+		return vms
+	}
 	ret := make([]model.VM, 0)
 	for _, v := range vms {
 		if v.Creator.Uuid == uuid {
@@ -76,8 +90,8 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	if res.Error != nil {
 		return res.Error
 	}
-	creator := model.User{Uuid: opt.Creator}
-	res = db.First(&creator)
+	creator := model.User{}
+	res = db.First(&creator, "uuid = ?", opt.Creator)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -144,7 +158,7 @@ func getImageFilePath(imageName string) string {
 func (v *vmManager) ModifyVM() {
 
 }
-func (v *vmManager) DeleteVM(id uint) error {
+func (v *vmManager) DeleteVM(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
 	vm := model.VM{}
@@ -153,7 +167,26 @@ func (v *vmManager) DeleteVM(id uint) error {
 	if res.Error != nil {
 		return db.Error
 	}
-
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && vm.Creator.Uuid != userID {
+		return errors.New("unauthorized operation, " + vm.Creator.UserType.Type)
+	}
 	//// libvirt operations ----------
 	l := virtlib.GetConnectedLib()
 	defer l.DisConnect()
@@ -179,6 +212,20 @@ func (v *vmManager) DeleteVM(id uint) error {
 			log.GetGlobalLogger().Errorln(err)
 		}
 	}
+	if _, err = l.GetCurrentSnapshot(vm.Name); err == nil {
+		// 获取所有快照
+		allSnapshots, err := l.ListSnapshots(vm.Name)
+		if err != nil {
+			return err
+		}
+		for _, v := range allSnapshots {
+			err = l.DeleteSnapshot(vm.Name, v.Name, libvirt.DomainSnapshotDeleteMetadataOnly)
+			if err != nil {
+				log.GetGlobalLogger().Errorln(err)
+				continue
+			}
+		}
+	}
 
 	res = db.Unscoped().Delete(&vm)
 	if res.Error != nil {
@@ -188,7 +235,7 @@ func (v *vmManager) DeleteVM(id uint) error {
 	return nil
 }
 
-func (v *vmManager) MakeSnapshotWithVM(id uint) error {
+func (v *vmManager) MakeSnapshotWithVM(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("DeleteVM, vm id: %v", id)
 	vm := model.VM{}
@@ -196,6 +243,30 @@ func (v *vmManager) MakeSnapshotWithVM(id uint) error {
 	res := db.First(&vm)
 	if res.Error != nil {
 		return db.Error
+	}
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	// 1. 学生不允许操作
+	// 2. 如果是老师，则需要满足操作的是他自己的实例
+	// 3. 其余的是admin，没限制
+	if operator.UserType.Type != "admin" &&
+		(operator.UserType.Type != "teacher" || vm.Creator.Uuid != userID) {
+		return errors.New("unauthorized operation")
 	}
 	l := virtlib.GetConnectedLib()
 	defer l.DisConnect()
@@ -225,6 +296,21 @@ func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 	res := db.First(&vm)
 	if res.Error != nil {
 		return db.Error
+	}
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	// 1. 学生不允许操作
+	// 2. 如果是老师，则需要满足操作的是他自己的实例
+	// 3. 其余的是admin，没限制
+	if vm.Creator.UserType.Type != "admin" &&
+		(vm.Creator.UserType.Type != "teacher" || vm.Creator.Uuid != userUUid) {
+		return errors.New("unauthorized operation")
 	}
 
 	l := virtlib.GetConnectedLib()
@@ -304,7 +390,7 @@ func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 func (v *vmManager) ResetVMWithSnapshot() {
 
 }
-func (v *vmManager) ShutdownVM(id uint) error {
+func (v *vmManager) ShutdownVM(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
 	vm := model.VM{}
@@ -313,6 +399,27 @@ func (v *vmManager) ShutdownVM(id uint) error {
 	if res.Error != nil {
 		return db.Error
 	}
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && vm.Creator.Uuid != userID {
+		return errors.New("unauthorized operation")
+	}
+
 	l := virtlib.GetConnectedLib()
 	err := l.ShutdownDomain(vm.Name)
 	if err != nil {
@@ -324,7 +431,7 @@ func (v *vmManager) ShutdownVM(id uint) error {
 	return nil
 }
 
-func (v *vmManager) RebootVM(id uint) error {
+func (v *vmManager) RebootVM(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
 	vm := model.VM{}
@@ -333,11 +440,31 @@ func (v *vmManager) RebootVM(id uint) error {
 	if res.Error != nil {
 		return db.Error
 	}
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && vm.Creator.Uuid != userID {
+		return errors.New("unauthorized operation")
+	}
 	l := virtlib.GetConnectedLib()
 	return l.RebootDomain(vm.Name)
 }
 
-func (v *vmManager) StartVM(id uint) error {
+func (v *vmManager) StartVM(id uint, userID string) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("MakeImageWithVM, vm id: %v", id)
 	vm := model.VM{}
@@ -345,6 +472,26 @@ func (v *vmManager) StartVM(id uint) error {
 	res := db.First(&vm)
 	if res.Error != nil {
 		return db.Error
+	}
+	res = db.Find(&vm.Creator, "id = ?", vm.CreatorID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&vm.Creator.UserType, "id = ?", vm.Creator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && vm.Creator.Uuid != userID {
+		return errors.New("unauthorized operation")
 	}
 	l := virtlib.GetConnectedLib()
 	err := l.StartDomain(vm.Name)
