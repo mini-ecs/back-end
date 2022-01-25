@@ -80,13 +80,13 @@ func (v *vmManager) GetSpecificVM() {
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("CreateVM")
-	course := model.Course{CourseName: opt.CourseName}
-	res := db.First(&course)
+	course := model.Course{}
+	res := db.First(&course, "course_name = ?", opt.CourseName)
 	log.GetGlobalLogger().Infof("course info: %+v", course)
 	if res.Error != nil {
 		return res.Error
 	}
-	res = db.First(&course.Image)
+	res = db.First(&course.Image, "id = ?", course.ImageID)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -122,6 +122,7 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	if err != nil {
 		panic(err)
 	}
+	log.GetGlobalLogger().Infof("Create VM, copy the source Image Finished, Image path: %v, source file: %v", snapshotPath, vm.SourceCourse.Image.Location)
 	snapshot := model.Snapshot{
 		VMName:           vm.Name,
 		SnapshotName:     vm.BaseImageFileName,
@@ -138,7 +139,9 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	d := virtlib.DefaultCreateDomainOpt
 	d.Uuid = uuid.New().String()
 	d.Name = vm.Name
-	d.Devices.Disk[1].Source.File = getImageFilePath(vm.BaseImageFileName)
+	d.Devices.Disk[1].Source.File = snapshotPath
+	//d.Devices.Disk = d.Devices.Disk[1:]
+
 	fmt.Printf("%+v\n", d)
 	err = l.CreateDomain(d)
 	if err != nil {

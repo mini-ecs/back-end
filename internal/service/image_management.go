@@ -85,15 +85,15 @@ func (i *imageManagement) DeleteImage(id uint, userID string) error {
 		return errors.New("unauthorized operation")
 	}
 
-	err := image_manager.LocalMachineImpl.Delete(image.Location)
-	if err != nil {
-		return err
-	}
-
 	res = db.Unscoped().Delete(&image)
 	if res.Error != nil {
 		log.GetGlobalLogger().Error(res.Error)
 		return res.Error
+	}
+
+	err := image_manager.LocalMachineImpl.Delete(image.Location)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -54,9 +54,8 @@ func (c *courseManager) DeleteCourse(id uint, userID string) error {
 	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
 	course := model.Course{}
 	course.ID = id
-	res := db.Unscoped().Delete(&course)
+	res := db.Find(&course)
 	if res.Error != nil {
-		log.GetGlobalLogger().Error(res.Error)
 		return res.Error
 	}
 	res = db.Find(&course.Teacher, "id = ?", course.TeacherID)
@@ -78,6 +77,11 @@ func (c *courseManager) DeleteCourse(id uint, userID string) error {
 	}
 	if operator.UserType.Type != "admin" && course.Teacher.Uuid != userID {
 		return errors.New("unauthorized operation")
+	}
+	res = db.Unscoped().Delete(&course)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+		return res.Error
 	}
 	return nil
 }

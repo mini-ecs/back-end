@@ -167,6 +167,7 @@ func (l *Lib) CreateDomain(opt DomainCreateOpt) error {
 	if err != nil {
 		return err
 	}
+	//return nil
 	return l.StartDomain(domain.Name)
 }
 
