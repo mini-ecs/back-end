@@ -123,6 +123,23 @@ func DeleteVM(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
 }
 
+func GetVNCPort(c *gin.Context) {
+	logger.Infof("GetVNCPort")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+
+	port, err := service.VMManager.GetVNCPort(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg(port))
+}
+
 // MakeSnapshotWithVM godoc
 // @Summary      根据实例创建快照
 // @Description  Unimplemented

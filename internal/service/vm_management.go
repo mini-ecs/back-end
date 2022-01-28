@@ -11,6 +11,7 @@ import (
 	"github.com/mini-ecs/back-end/internal/virtlib"
 	"github.com/mini-ecs/back-end/pkg/config"
 	"github.com/mini-ecs/back-end/pkg/log"
+	"strconv"
 )
 
 var VMManager = new(vmManager)
@@ -76,6 +77,22 @@ func (v *vmManager) GetVMList(uuid string) []model.VM {
 }
 func (v *vmManager) GetSpecificVM() {
 
+}
+func (v *vmManager) GetVNCPort(id uint) (string, error) {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetVNCPort, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return "", db.Error
+	}
+
+	l := virtlib.GetConnectedLib()
+	vncStr := l.GetDomainVNCPort(vm.Name)
+	vnc, err := strconv.Atoi(vncStr)
+	port, err := virtlib.ProxyVNCToWebSocket(vnc)
+	return strconv.Itoa(port), err
 }
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	db := pool.GetDB()
