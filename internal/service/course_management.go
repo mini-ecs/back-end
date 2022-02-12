@@ -40,14 +40,75 @@ func (c *courseManager) GetMachineConfig() []model.MachineConfig {
 	}
 	return configs
 }
-func (c *courseManager) GetSpecificCourse() {
-
+func (c *courseManager) GetSpecificCourse(courseId int) model.Course {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetSpecificCourse")
+	var course model.Course
+	res := db.Find(&course, "id = ?", courseId)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+	}
+	db.Find(&course.Image, "ID = ?", course.ImageID)
+	db.Find(&course.Status, "ID = ?", course.StatusID)
+	db.Find(&course.Teacher, "ID = ?", course.TeacherID)
+	db.Find(&course.MachineConfig, "ID = ?", course.MachineConfigID)
+	return course
 }
 func (c *courseManager) GetCourseLisCreateCourse() {
 
 }
-func (c *courseManager) ModifyCourse() {
+func (c *courseManager) ModifyCourse(id uint, userID string, opt model.CreateCourseOpt) error {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetMachineConfig, course id: %v", id)
+	course := model.Course{}
+	course.ID = id
+	res := db.Find(&course)
+	if res.Error != nil {
+		return res.Error
+	}
+	res = db.Find(&course.Teacher, "id = ?", course.TeacherID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&course.Teacher.UserType, "id = ?", course.Teacher.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	operator := model.User{}
+	res = db.Find(&operator, "uuid = ?", userID)
+	if res.Error != nil {
+		return db.Error
+	}
+	res = db.Find(&operator.UserType, "id = ?", operator.UserTypeID)
+	if res.Error != nil {
+		return db.Error
+	}
+	if operator.UserType.Type != "admin" && course.Teacher.Uuid != userID {
+		return errors.New("unauthorized operation")
+	}
+	image := model.ImageOrSnapshot{}
+	res = db.First(&image, "name = ?", opt.ImageName)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+		return res.Error
+	}
 
+	//machineConfig := model.MachineConfig{}
+	//res = db.First(&machineConfig, "id = ?", opt.ConfigNumber)
+	//if res.Error != nil {
+	//	log.GetGlobalLogger().Error(res.Error)
+	//	return res.Error
+	//}
+	course.ImageID = image.ID
+	course.CourseName = opt.CourseName
+	//course.MachineConfigID = machineConfig.ID
+
+	res = db.Save(&course)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+		return res.Error
+	}
+	return nil
 }
 func (c *courseManager) DeleteCourse(id uint, userID string) error {
 	db := pool.GetDB()

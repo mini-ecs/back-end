@@ -16,7 +16,7 @@ type Course struct {
 	MachineConfigID uint            `json:"-" `
 	MachineConfig   MachineConfig   `json:"machineConfig" gorm:"foreignKey:MachineConfigID"`
 	ImageID         uint            `json:"-" `
-	Image           ImageOrSnapshot `json:"image" gorm:"foreignKey:ImageID"`
+	Image           ImageOrSnapshot `json:"image" gorm:"unique;foreignKey:ImageID"`
 }
 
 type MachineConfig struct {

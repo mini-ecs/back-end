@@ -240,3 +240,389 @@ type DomainState struct {
 	VirCPU    uint32
 	CPUTime   uint32
 }
+
+//type Capabilities struct {
+//	XMLName xml.Name `xml:"capabilities"`
+//	Text    string   `xml:",chardata"`
+//	Host    struct {
+//		Text string `xml:",chardata"`
+//		Uuid string `xml:"uuid"`
+//		Cpu  struct {
+//			Text      string `xml:",chardata"`
+//			Arch      string `xml:"arch"`
+//			Model     string `xml:"model"`
+//			Vendor    string `xml:"vendor"`
+//			Microcode struct {
+//				Text    string `xml:",chardata"`
+//				Version string `xml:"version,attr"`
+//			} `xml:"microcode"`
+//			Counter struct {
+//				Text      string `xml:",chardata"`
+//				Name      string `xml:"name,attr"`
+//				Frequency string `xml:"frequency,attr"`
+//				Scaling   string `xml:"scaling,attr"`
+//			} `xml:"counter"`
+//			Topology struct {
+//				Text    string `xml:",chardata"`
+//				Sockets string `xml:"sockets,attr"`
+//				Cores   string `xml:"cores,attr"`
+//				Threads string `xml:"threads,attr"`
+//			} `xml:"topology"`
+//			Feature []struct {
+//				Text string `xml:",chardata"`
+//				Name string `xml:"name,attr"`
+//			} `xml:"feature"`
+//			Pages []struct {
+//				Text string `xml:",chardata"`
+//				Unit string `xml:"unit,attr"`
+//				Size string `xml:"size,attr"`
+//			} `xml:"pages"`
+//		} `xml:"cpu"`
+//		PowerManagement struct {
+//			Text          string `xml:",chardata"`
+//			SuspendMem    string `xml:"suspend_mem"`
+//			SuspendDisk   string `xml:"suspend_disk"`
+//			SuspendHybrid string `xml:"suspend_hybrid"`
+//		} `xml:"power_management"`
+//		Iommu struct {
+//			Text    string `xml:",chardata"`
+//			Support string `xml:"support,attr"`
+//		} `xml:"iommu"`
+//		MigrationFeatures struct {
+//			Text          string `xml:",chardata"`
+//			Live          string `xml:"live"`
+//			URITransports struct {
+//				Text         string   `xml:",chardata"`
+//				URITransport []string `xml:"uri_transport"`
+//			} `xml:"uri_transports"`
+//		} `xml:"migration_features"`
+//		Topology struct {
+//			Text  string `xml:",chardata"`
+//			Cells struct {
+//				Text string `xml:",chardata"`
+//				Num  string `xml:"num,attr"`
+//				Cell struct {
+//					Text   string `xml:",chardata"`
+//					ID     string `xml:"id,attr"`
+//					Memory struct {
+//						Text string `xml:",chardata"`
+//						Unit string `xml:"unit,attr"`
+//					} `xml:"memory"`
+//					Pages []struct {
+//						Text string `xml:",chardata"`
+//						Unit string `xml:"unit,attr"`
+//						Size string `xml:"size,attr"`
+//					} `xml:"pages"`
+//					Distances struct {
+//						Text    string `xml:",chardata"`
+//						Sibling struct {
+//							Text  string `xml:",chardata"`
+//							ID    string `xml:"id,attr"`
+//							Value string `xml:"value,attr"`
+//						} `xml:"sibling"`
+//					} `xml:"distances"`
+//					Cpus struct {
+//						Text string `xml:",chardata"`
+//						Num  string `xml:"num,attr"`
+//						Cpu  []struct {
+//							Text     string `xml:",chardata"`
+//							ID       string `xml:"id,attr"`
+//							SocketID string `xml:"socket_id,attr"`
+//							CoreID   string `xml:"core_id,attr"`
+//							Siblings string `xml:"siblings,attr"`
+//						} `xml:"cpu"`
+//					} `xml:"cpus"`
+//				} `xml:"cell"`
+//			} `xml:"cells"`
+//		} `xml:"topology"`
+//		Cache struct {
+//			Text string `xml:",chardata"`
+//			Bank struct {
+//				Text  string `xml:",chardata"`
+//				ID    string `xml:"id,attr"`
+//				Level string `xml:"level,attr"`
+//				Type  string `xml:"type,attr"`
+//				Size  string `xml:"size,attr"`
+//				Unit  string `xml:"unit,attr"`
+//				Cpus  string `xml:"cpus,attr"`
+//			} `xml:"bank"`
+//		} `xml:"cache"`
+//		Secmodel []struct {
+//			Text      string `xml:",chardata"`
+//			Model     string `xml:"model"`
+//			Doi       string `xml:"doi"`
+//			Baselabel []struct {
+//				Text string `xml:",chardata"`
+//				Type string `xml:"type,attr"`
+//			} `xml:"baselabel"`
+//		} `xml:"secmodel"`
+//	} `xml:"host"`
+//	Guest []struct {
+//		Text   string `xml:",chardata"`
+//		OsType string `xml:"os_type"`
+//		Arch   struct {
+//			Text     string `xml:",chardata"`
+//			Name     string `xml:"name,attr"`
+//			Wordsize string `xml:"wordsize"`
+//			Emulator string `xml:"emulator"`
+//			Machine  []struct {
+//				Text      string `xml:",chardata"`
+//				MaxCpus   string `xml:"maxCpus,attr"`
+//				Canonical string `xml:"canonical,attr"`
+//			} `xml:"machine"`
+//			Domain []struct {
+//				Text string `xml:",chardata"`
+//				Type string `xml:"type,attr"`
+//			} `xml:"domain"`
+//		} `xml:"arch"`
+//		Features struct {
+//			Text         string `xml:",chardata"`
+//			Cpuselection string `xml:"cpuselection"`
+//			Deviceboot   string `xml:"deviceboot"`
+//			Disksnapshot struct {
+//				Text    string `xml:",chardata"`
+//				Default string `xml:"default,attr"`
+//				Toggle  string `xml:"toggle,attr"`
+//			} `xml:"disksnapshot"`
+//			Acpi struct {
+//				Text    string `xml:",chardata"`
+//				Default string `xml:"default,attr"`
+//				Toggle  string `xml:"toggle,attr"`
+//			} `xml:"acpi"`
+//			Pae    string `xml:"pae"`
+//			Nonpae string `xml:"nonpae"`
+//			Apic   struct {
+//				Text    string `xml:",chardata"`
+//				Default string `xml:"default,attr"`
+//				Toggle  string `xml:"toggle,attr"`
+//			} `xml:"apic"`
+//		} `xml:"features"`
+//	} `xml:"guest"`
+//}
+type Welcome4 struct {
+	Capabilities Capabilities `xml:"capabilities"`
+}
+
+type Capabilities struct {
+	Host  Host    `xml:"host"`
+	Guest []Guest `xml:"guest"`
+}
+
+type Guest struct {
+	OSType   OSType   `xml:"os_type"`
+	Arch     Arch     `xml:"arch"`
+	Features Features `xml:"features"`
+}
+
+type Arch struct {
+	Wordsize string        `xml:"wordsize"`
+	Emulator string        `xml:"emulator"`
+	Machine  *MachineUnion `xml:"machine"`
+	Domain   *DomainUnion  `xml:"domain"`
+	Name     string        `xml:"_name"`
+}
+
+type DomainElement struct {
+	Type Type `xml:"_type"`
+}
+
+type MachineElement struct {
+	MaxCpus   string  `xml:"_maxCpus"`
+	Text      string  `xml:"__text"`
+	Canonical *string `xml:"_canonical,omitempty"`
+}
+
+type PurpleMachine struct {
+	MaxCpus string `xml:"_maxCpus"`
+	Text    string `xml:"__text"`
+}
+
+type Features struct {
+	Cpuselection string  `xml:"cpuselection"`
+	Deviceboot   string  `xml:"deviceboot"`
+	Disksnapshot ACPI    `xml:"disksnapshot"`
+	ACPI         *ACPI   `xml:"acpi,omitempty"`
+	Pae          *string `xml:"pae,omitempty"`
+	Nonpae       *string `xml:"nonpae,omitempty"`
+	APIC         *ACPI   `xml:"apic,omitempty"`
+}
+
+type ACPI struct {
+	Default Default `xml:"_default"`
+	Toggle  Support `xml:"_toggle"`
+}
+
+type Host struct {
+	UUID              string            `xml:"uuid"`
+	CPU               HostCPU           `xml:"cpu"`
+	PowerManagement   PowerManagement   `xml:"power_management"`
+	Iommu             Iommu             `xml:"iommu"`
+	MigrationFeatures MigrationFeatures `xml:"migration_features"`
+	Topology          HostTopology      `xml:"topology"`
+	Cache             Cache             `xml:"cache"`
+	Secmodel          []Secmodel        `xml:"secmodel"`
+}
+
+type HostCPU struct {
+	Arch      string      `xml:"arch"`
+	Model     string      `xml:"model"`
+	Vendor    string      `xml:"vendor"`
+	Microcode Microcode   `xml:"microcode"`
+	Counter   Counter     `xml:"counter"`
+	Topology  CPUTopology `xml:"topology"`
+	Feature   []Feature   `xml:"feature"`
+	Pages     []CPUPage   `xml:"pages"`
+}
+
+type Counter struct {
+	Name      string  `xml:"_name"`
+	Frequency string  `xml:"_frequency"`
+	Scaling   Support `xml:"_scaling"`
+}
+
+type Feature struct {
+	Name string `xml:"_name"`
+}
+
+type Microcode struct {
+	Version string `xml:"_version"`
+}
+
+type CPUPage struct {
+	Unit string `xml:"_unit"`
+	Size string `xml:"_size"`
+}
+
+type CPUTopology struct {
+	Sockets string `xml:"_sockets"`
+	Cores   string `xml:"_cores"`
+	Threads string `xml:"_threads"`
+}
+
+type Cache struct {
+	Bank Bank `xml:"bank"`
+}
+
+type Bank struct {
+	ID    string `xml:"_id"`
+	Level string `xml:"_level"`
+	Type  string `xml:"_type"`
+	Size  string `xml:"_size"`
+	Unit  string `xml:"_unit"`
+	Cpus  string `xml:"_cpus"`
+}
+
+type Iommu struct {
+	Support Support `xml:"_support"`
+}
+
+type MigrationFeatures struct {
+	Live          string        `xml:"live"`
+	URITransports URITransports `xml:"uri_transports"`
+}
+
+type URITransports struct {
+	URITransport []string `xml:"uri_transport"`
+}
+
+type PowerManagement struct {
+	SuspendMem    string `xml:"suspend_mem"`
+	SuspendDisk   string `xml:"suspend_disk"`
+	SuspendHybrid string `xml:"suspend_hybrid"`
+}
+
+type Secmodel struct {
+	Model     string      `xml:"model"`
+	Doi       string      `xml:"doi"`
+	Baselabel []Baselabel `xml:"baselabel,omitempty"`
+}
+
+type Baselabel struct {
+	Type Type   `xml:"_type"`
+	Text string `xml:"__text"`
+}
+
+type HostTopology struct {
+	Cells Cells `xml:"cells"`
+}
+
+type Cells struct {
+	Cell Cell   `xml:"cell"`
+	Num  string `xml:"_num"`
+}
+
+type Cell struct {
+	Memory    Memory     `xml:"memory"`
+	Pages     []CellPage `xml:"pages"`
+	Distances Distances  `xml:"distances"`
+	Cpus      Cpus       `xml:"cpus"`
+	ID        string     `xml:"_id"`
+}
+
+type Cpus struct {
+	CPU []CPUElement `xml:"cpu"`
+	Num string       `xml:"_num"`
+}
+
+type CPUElement struct {
+	ID       string `xml:"_id"`
+	SocketID string `xml:"_socket_id"`
+	CoreID   string `xml:"_core_id"`
+	Siblings string `xml:"_siblings"`
+}
+
+type Distances struct {
+	Sibling Sibling `xml:"sibling"`
+}
+
+type Sibling struct {
+	ID    string `xml:"_id"`
+	Value string `xml:"_value"`
+}
+
+type Memory struct {
+	Unit string `xml:"_unit"`
+	Text string `xml:"__text"`
+}
+
+type CellPage struct {
+	Unit string `xml:"_unit"`
+	Size string `xml:"_size"`
+	Text string `xml:"__text"`
+}
+
+type Type string
+
+const (
+	KVM  Type = "kvm"
+	Qemu Type = "qemu"
+)
+
+type Default string
+
+const (
+	On Default = "on"
+)
+
+type Support string
+
+const (
+	No  Support = "no"
+	Yes Support = "yes"
+)
+
+type OSType string
+
+const (
+	Hvm OSType = "hvm"
+)
+
+type DomainUnion struct {
+	DomainElement      *DomainElement
+	DomainElementArray []DomainElement
+}
+
+type MachineUnion struct {
+	MachineElementArray []MachineElement
+	PurpleMachine       *PurpleMachine
+}

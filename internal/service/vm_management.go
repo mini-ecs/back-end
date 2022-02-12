@@ -389,7 +389,7 @@ func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 	}
 	log.GetGlobalLogger().Infof("开始拷贝镜像")
 	// make sure the vm has stopped
-	newPath := getImageFilePath(imageName)
+	newPath := getImageFilePath(vm.Name)
 	err = image_manager.LocalMachineImpl.Copy(newPath, curSnap.SnapshotLocation)
 	if err != nil {
 		return err
@@ -401,7 +401,7 @@ func (v *vmManager) MakeImageWithVM(id uint, imageName, userUUid string) error {
 		Type:         "image",
 		Location:     newPath,
 		GenerateType: 1,
-		Name:         imageName,
+		Name:         fmt.Sprintf("%v[IMAGE]", vm.Name),
 		Creator:      creator,
 	}
 	res = db.Create(&image)

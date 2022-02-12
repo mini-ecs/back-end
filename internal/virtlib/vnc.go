@@ -51,8 +51,8 @@ func establishVNCtoHTTP(vncPort int, httpPort int) error {
 		return err
 	}
 	go func() {
-		// two hour
-		time.Sleep(2 * 60 * 60 * time.Second)
+		// one hour
+		time.Sleep(60 * 60 * time.Second)
 		cmd.Process.Kill()
 		mutex.Lock()
 		delete(portPool, httpPort)

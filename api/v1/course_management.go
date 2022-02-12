@@ -55,8 +55,14 @@ func GetMachineConfig(c *gin.Context) {
 // @Router       /course/:uuid [get]
 func GetSpecificCourse(c *gin.Context) {
 	logger.Infof("GetSpecificCourse")
-	service.CourseManager.GetSpecificCourse()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	course := service.CourseManager.GetSpecificCourse(id)
+	c.JSON(http.StatusOK, response.SuccessMsg(course))
 }
 
 // CreateCourse godoc
@@ -105,8 +111,28 @@ func CreateCourse(c *gin.Context) {
 // @Router       /course/:uuid [put]
 func ModifyCourse(c *gin.Context) {
 	logger.Infof("ModifyCourse")
-	service.CourseManager.ModifyCourse()
-	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+	var opt model.CreateCourseOpt
+	//json := make(map[string]interface{})
+
+	err := c.ShouldBindJSON(&opt)
+	if err != nil {
+		logger.Error(err)
+	}
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	userID, err := c.Cookie("uuid")
+	if err != nil {
+		logger.Errorln(err)
+	}
+	err = service.CourseManager.ModifyCourse(uint(id), userID, opt)
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg("ok"))
 }
 
 // DeleteCourse godoc
