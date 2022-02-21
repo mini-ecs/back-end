@@ -241,164 +241,164 @@ type DomainState struct {
 	CPUTime   uint32
 }
 
-//type Capabilities struct {
-//	XMLName xml.Name `xml:"capabilities"`
-//	Text    string   `xml:",chardata"`
-//	Host    struct {
-//		Text string `xml:",chardata"`
-//		Uuid string `xml:"uuid"`
-//		Cpu  struct {
-//			Text      string `xml:",chardata"`
-//			Arch      string `xml:"arch"`
-//			Model     string `xml:"model"`
-//			Vendor    string `xml:"vendor"`
-//			Microcode struct {
-//				Text    string `xml:",chardata"`
-//				Version string `xml:"version,attr"`
-//			} `xml:"microcode"`
-//			Counter struct {
-//				Text      string `xml:",chardata"`
-//				Name      string `xml:"name,attr"`
-//				Frequency string `xml:"frequency,attr"`
-//				Scaling   string `xml:"scaling,attr"`
-//			} `xml:"counter"`
-//			Topology struct {
-//				Text    string `xml:",chardata"`
-//				Sockets string `xml:"sockets,attr"`
-//				Cores   string `xml:"cores,attr"`
-//				Threads string `xml:"threads,attr"`
-//			} `xml:"topology"`
-//			Feature []struct {
-//				Text string `xml:",chardata"`
-//				Name string `xml:"name,attr"`
-//			} `xml:"feature"`
-//			Pages []struct {
-//				Text string `xml:",chardata"`
-//				Unit string `xml:"unit,attr"`
-//				Size string `xml:"size,attr"`
-//			} `xml:"pages"`
-//		} `xml:"cpu"`
-//		PowerManagement struct {
-//			Text          string `xml:",chardata"`
-//			SuspendMem    string `xml:"suspend_mem"`
-//			SuspendDisk   string `xml:"suspend_disk"`
-//			SuspendHybrid string `xml:"suspend_hybrid"`
-//		} `xml:"power_management"`
-//		Iommu struct {
-//			Text    string `xml:",chardata"`
-//			Support string `xml:"support,attr"`
-//		} `xml:"iommu"`
-//		MigrationFeatures struct {
-//			Text          string `xml:",chardata"`
-//			Live          string `xml:"live"`
-//			URITransports struct {
-//				Text         string   `xml:",chardata"`
-//				URITransport []string `xml:"uri_transport"`
-//			} `xml:"uri_transports"`
-//		} `xml:"migration_features"`
-//		Topology struct {
-//			Text  string `xml:",chardata"`
-//			Cells struct {
-//				Text string `xml:",chardata"`
-//				Num  string `xml:"num,attr"`
-//				Cell struct {
-//					Text   string `xml:",chardata"`
-//					ID     string `xml:"id,attr"`
-//					Memory struct {
-//						Text string `xml:",chardata"`
-//						Unit string `xml:"unit,attr"`
-//					} `xml:"memory"`
-//					Pages []struct {
-//						Text string `xml:",chardata"`
-//						Unit string `xml:"unit,attr"`
-//						Size string `xml:"size,attr"`
-//					} `xml:"pages"`
-//					Distances struct {
-//						Text    string `xml:",chardata"`
-//						Sibling struct {
-//							Text  string `xml:",chardata"`
-//							ID    string `xml:"id,attr"`
-//							Value string `xml:"value,attr"`
-//						} `xml:"sibling"`
-//					} `xml:"distances"`
-//					Cpus struct {
-//						Text string `xml:",chardata"`
-//						Num  string `xml:"num,attr"`
-//						Cpu  []struct {
-//							Text     string `xml:",chardata"`
-//							ID       string `xml:"id,attr"`
-//							SocketID string `xml:"socket_id,attr"`
-//							CoreID   string `xml:"core_id,attr"`
-//							Siblings string `xml:"siblings,attr"`
-//						} `xml:"cpu"`
-//					} `xml:"cpus"`
-//				} `xml:"cell"`
-//			} `xml:"cells"`
-//		} `xml:"topology"`
-//		Cache struct {
-//			Text string `xml:",chardata"`
-//			Bank struct {
-//				Text  string `xml:",chardata"`
-//				ID    string `xml:"id,attr"`
-//				Level string `xml:"level,attr"`
-//				Type  string `xml:"type,attr"`
-//				Size  string `xml:"size,attr"`
-//				Unit  string `xml:"unit,attr"`
-//				Cpus  string `xml:"cpus,attr"`
-//			} `xml:"bank"`
-//		} `xml:"cache"`
-//		Secmodel []struct {
-//			Text      string `xml:",chardata"`
-//			Model     string `xml:"model"`
-//			Doi       string `xml:"doi"`
-//			Baselabel []struct {
-//				Text string `xml:",chardata"`
-//				Type string `xml:"type,attr"`
-//			} `xml:"baselabel"`
-//		} `xml:"secmodel"`
-//	} `xml:"host"`
-//	Guest []struct {
-//		Text   string `xml:",chardata"`
-//		OsType string `xml:"os_type"`
-//		Arch   struct {
-//			Text     string `xml:",chardata"`
-//			Name     string `xml:"name,attr"`
-//			Wordsize string `xml:"wordsize"`
-//			Emulator string `xml:"emulator"`
-//			Machine  []struct {
-//				Text      string `xml:",chardata"`
-//				MaxCpus   string `xml:"maxCpus,attr"`
-//				Canonical string `xml:"canonical,attr"`
-//			} `xml:"machine"`
-//			Domain []struct {
-//				Text string `xml:",chardata"`
-//				Type string `xml:"type,attr"`
-//			} `xml:"domain"`
-//		} `xml:"arch"`
-//		Features struct {
-//			Text         string `xml:",chardata"`
-//			Cpuselection string `xml:"cpuselection"`
-//			Deviceboot   string `xml:"deviceboot"`
-//			Disksnapshot struct {
-//				Text    string `xml:",chardata"`
-//				Default string `xml:"default,attr"`
-//				Toggle  string `xml:"toggle,attr"`
-//			} `xml:"disksnapshot"`
-//			Acpi struct {
-//				Text    string `xml:",chardata"`
-//				Default string `xml:"default,attr"`
-//				Toggle  string `xml:"toggle,attr"`
-//			} `xml:"acpi"`
-//			Pae    string `xml:"pae"`
-//			Nonpae string `xml:"nonpae"`
-//			Apic   struct {
-//				Text    string `xml:",chardata"`
-//				Default string `xml:"default,attr"`
-//				Toggle  string `xml:"toggle,attr"`
-//			} `xml:"apic"`
-//		} `xml:"features"`
-//	} `xml:"guest"`
-//}
+type Capability struct {
+	XMLName xml.Name `xml:"capabilities"`
+	Text    string   `xml:",chardata"`
+	Host    struct {
+		Text string `xml:",chardata"`
+		Uuid string `xml:"uuid"`
+		Cpu  struct {
+			Text      string `xml:",chardata"`
+			Arch      string `xml:"arch"`
+			Model     string `xml:"model"`
+			Vendor    string `xml:"vendor"`
+			Microcode struct {
+				Text    string `xml:",chardata"`
+				Version string `xml:"version,attr"`
+			} `xml:"microcode"`
+			Counter struct {
+				Text      string `xml:",chardata"`
+				Name      string `xml:"name,attr"`
+				Frequency string `xml:"frequency,attr"`
+				Scaling   string `xml:"scaling,attr"`
+			} `xml:"counter"`
+			Topology struct {
+				Text    string `xml:",chardata"`
+				Sockets string `xml:"sockets,attr"`
+				Cores   string `xml:"cores,attr"`
+				Threads string `xml:"threads,attr"`
+			} `xml:"topology"`
+			Feature []struct {
+				Text string `xml:",chardata"`
+				Name string `xml:"name,attr"`
+			} `xml:"feature"`
+			Pages []struct {
+				Text string `xml:",chardata"`
+				Unit string `xml:"unit,attr"`
+				Size string `xml:"size,attr"`
+			} `xml:"pages"`
+		} `xml:"cpu"`
+		PowerManagement struct {
+			Text          string `xml:",chardata"`
+			SuspendMem    string `xml:"suspend_mem"`
+			SuspendDisk   string `xml:"suspend_disk"`
+			SuspendHybrid string `xml:"suspend_hybrid"`
+		} `xml:"power_management"`
+		Iommu struct {
+			Text    string `xml:",chardata"`
+			Support string `xml:"support,attr"`
+		} `xml:"iommu"`
+		MigrationFeatures struct {
+			Text          string `xml:",chardata"`
+			Live          string `xml:"live"`
+			URITransports struct {
+				Text         string   `xml:",chardata"`
+				URITransport []string `xml:"uri_transport"`
+			} `xml:"uri_transports"`
+		} `xml:"migration_features"`
+		Topology struct {
+			Text  string `xml:",chardata"`
+			Cells struct {
+				Text string `xml:",chardata"`
+				Num  string `xml:"num,attr"`
+				Cell struct {
+					Text   string `xml:",chardata"`
+					ID     string `xml:"id,attr"`
+					Memory struct {
+						Text string `xml:",chardata"`
+						Unit string `xml:"unit,attr"`
+					} `xml:"memory"`
+					Pages []struct {
+						Text string `xml:",chardata"`
+						Unit string `xml:"unit,attr"`
+						Size string `xml:"size,attr"`
+					} `xml:"pages"`
+					Distances struct {
+						Text    string `xml:",chardata"`
+						Sibling struct {
+							Text  string `xml:",chardata"`
+							ID    string `xml:"id,attr"`
+							Value string `xml:"value,attr"`
+						} `xml:"sibling"`
+					} `xml:"distances"`
+					Cpus struct {
+						Text string `xml:",chardata"`
+						Num  string `xml:"num,attr"`
+						Cpu  []struct {
+							Text     string `xml:",chardata"`
+							ID       string `xml:"id,attr"`
+							SocketID string `xml:"socket_id,attr"`
+							CoreID   string `xml:"core_id,attr"`
+							Siblings string `xml:"siblings,attr"`
+						} `xml:"cpu"`
+					} `xml:"cpus"`
+				} `xml:"cell"`
+			} `xml:"cells"`
+		} `xml:"topology"`
+		Cache struct {
+			Text string `xml:",chardata"`
+			Bank struct {
+				Text  string `xml:",chardata"`
+				ID    string `xml:"id,attr"`
+				Level string `xml:"level,attr"`
+				Type  string `xml:"type,attr"`
+				Size  string `xml:"size,attr"`
+				Unit  string `xml:"unit,attr"`
+				Cpus  string `xml:"cpus,attr"`
+			} `xml:"bank"`
+		} `xml:"cache"`
+		Secmodel []struct {
+			Text      string `xml:",chardata"`
+			Model     string `xml:"model"`
+			Doi       string `xml:"doi"`
+			Baselabel []struct {
+				Text string `xml:",chardata"`
+				Type string `xml:"type,attr"`
+			} `xml:"baselabel"`
+		} `xml:"secmodel"`
+	} `xml:"host"`
+	Guest []struct {
+		Text   string `xml:",chardata"`
+		OsType string `xml:"os_type"`
+		Arch   struct {
+			Text     string `xml:",chardata"`
+			Name     string `xml:"name,attr"`
+			Wordsize string `xml:"wordsize"`
+			Emulator string `xml:"emulator"`
+			Machine  []struct {
+				Text      string `xml:",chardata"`
+				MaxCpus   string `xml:"maxCpus,attr"`
+				Canonical string `xml:"canonical,attr"`
+			} `xml:"machine"`
+			Domain []struct {
+				Text string `xml:",chardata"`
+				Type string `xml:"type,attr"`
+			} `xml:"domain"`
+		} `xml:"arch"`
+		Features struct {
+			Text         string `xml:",chardata"`
+			Cpuselection string `xml:"cpuselection"`
+			Deviceboot   string `xml:"deviceboot"`
+			Disksnapshot struct {
+				Text    string `xml:",chardata"`
+				Default string `xml:"default,attr"`
+				Toggle  string `xml:"toggle,attr"`
+			} `xml:"disksnapshot"`
+			Acpi struct {
+				Text    string `xml:",chardata"`
+				Default string `xml:"default,attr"`
+				Toggle  string `xml:"toggle,attr"`
+			} `xml:"acpi"`
+			Pae    string `xml:"pae"`
+			Nonpae string `xml:"nonpae"`
+			Apic   struct {
+				Text    string `xml:",chardata"`
+				Default string `xml:"default,attr"`
+				Toggle  string `xml:"toggle,attr"`
+			} `xml:"apic"`
+		} `xml:"features"`
+	} `xml:"guest"`
+}
 type Welcome4 struct {
 	Capabilities Capabilities `xml:"capabilities"`
 }

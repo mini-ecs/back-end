@@ -52,6 +52,7 @@ func NewRouter() *gin.Engine {
 		group.GET("/vm/vnc/:uuid", Auth(), v1.GetVNCPort)
 		group.PUT("/vm/:uuid", Auth(), v1.ModifyVM)
 		group.DELETE("/vm/:uuid", Auth(), v1.DeleteVM)
+		group.GET("/vm/memory/:uuid", Auth(), v1.GetMemoryUsage)
 		group.POST("/vm", Auth(), v1.CreateVM)
 		group.POST("/vm/shutdown/:uuid", Auth(), v1.ShutDownVM)
 		group.POST("/vm/reboot/:uuid", Auth(), v1.RebootVM)

@@ -42,8 +42,24 @@ func GetVMList(c *gin.Context) {
 // @Router       /vm/:uuid [get]
 func GetSpecificVM(c *gin.Context) {
 	logger.Infof("GetSpecificVM")
-	service.VMManager.GetSpecificVM()
+	//service.VMManager.GetSpecificVM()
 	c.JSON(http.StatusOK, response.SuccessMsg("Unimplemented"))
+}
+
+func GetMemoryUsage(c *gin.Context) {
+	logger.Infof("GetMemoryUsage")
+	idStr := c.Param("uuid")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Errorf("parse string to int error: %v", err)
+		return
+	}
+	rate, err := service.VMManager.GetMemUsage(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg(rate))
 }
 
 // CreateVM godoc

@@ -42,7 +42,7 @@ func (c *courseManager) GetMachineConfig() []model.MachineConfig {
 }
 func (c *courseManager) GetSpecificCourse(courseId int) model.Course {
 	db := pool.GetDB()
-	log.GetGlobalLogger().Infof("GetSpecificCourse")
+	log.GetGlobalLogger().Infof("GetSpecificCourse, id = %v", courseId)
 	var course model.Course
 	res := db.Find(&course, "id = ?", courseId)
 	if res.Error != nil {

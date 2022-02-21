@@ -75,8 +75,57 @@ func (v *vmManager) GetVMList(uuid string) []model.VM {
 	}
 	return ret
 }
-func (v *vmManager) GetSpecificVM() {
+func (v *vmManager) GetSpecificVM(uuid string) (model.VM, error) {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetVMList")
+	var vms model.VM
+	res := db.Find(&vms)
+	if res.Error != nil {
+		log.GetGlobalLogger().Error(res.Error)
+	}
+	l := virtlib.GetConnectedLib()
+	defer l.DisConnect()
 
+	db.Find(&vms.Creator, "ID = ?", vms.CreatorID)
+	db.Find(&vms.SourceCourse, "ID = ?", vms.SourceCourseID)
+	db.Find(&vms.SourceCourse.MachineConfig, "ID = ?", vms.SourceCourse.MachineConfigID)
+	// virtual machine is still preparing
+	if vms.IP == "" {
+		var err error
+		vms.IP, err = l.GetDomainIPAddress(vms.Name)
+		if err != nil {
+			log.GetGlobalLogger().Infof("get ip address error: %v", err)
+			return model.VM{}, err
+		}
+		// virtual machine is ok, so it has ip address, set the status to running
+		if vms.IP != "" {
+			status := model.Status{}
+			db.First(&status, "status = ?", "running")
+			vms.StatusID = status.ID
+			db.Model(&vms).Update("status_id", status.ID)
+		}
+	}
+	// default status is pending
+	db.Find(&vms.Status, "ID = ?", vms.StatusID)
+
+	// 如果用户是admin，则返回所有列表，否则只返回自己创建的
+	user := model.User{}
+	res = db.First(&user, "uuid = ?", uuid)
+	if res.Error != nil {
+		log.GetGlobalLogger().Errorln(res.Error)
+	}
+	res = db.First(&user.UserType, "id = ?", user.UserTypeID)
+	if res.Error != nil {
+		log.GetGlobalLogger().Errorln(res.Error)
+	}
+	if user.UserType.Type == "admin" {
+		return vms, nil
+	}
+	if vms.Creator.Uuid == uuid {
+		return vms, nil
+	}
+
+	return model.VM{}, errors.New("no such virtual machine")
 }
 func (v *vmManager) GetVNCPort(id uint) (string, error) {
 	db := pool.GetDB()
@@ -93,6 +142,18 @@ func (v *vmManager) GetVNCPort(id uint) (string, error) {
 	vnc, err := strconv.Atoi(vncStr)
 	port, err := virtlib.ProxyVNCToWebSocket(vnc)
 	return strconv.Itoa(port), err
+}
+func (v *vmManager) GetMemUsage(id uint) (float64, error) {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetVNCPort, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return 0.0, db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	return l.GetDomMemUsage(vm.Name)
 }
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	db := pool.GetDB()
