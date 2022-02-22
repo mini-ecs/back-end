@@ -1,6 +1,10 @@
 package virtlib
 
-import "github.com/digitalocean/go-libvirt"
+import (
+	"fmt"
+	"github.com/digitalocean/go-libvirt"
+	"time"
+)
 
 //func (l *Lib) GetCPUStat() {
 //	l.con.NodeGetInfo()
@@ -45,4 +49,55 @@ func (l *Lib) GetDomMemUsage(domName string) (float64, error) {
 		}
 	}
 	return float64(total-usable) / float64(total), err
+}
+
+func (l *Lib) GetDomDiskUsage(domName string) (float64, error) {
+	path := l.GetDomainDiskPath(domName)
+	dom, err := l.GetDomainByName(domName)
+	if err != nil {
+		return 0, err
+	}
+	alloc, capacity, _, err := l.con.DomainGetBlockInfo(dom, path, 0)
+	if err != nil {
+		return 0, err
+	}
+	return float64(alloc) / float64(capacity), nil
+}
+
+func (l *Lib) GetDomCPUTime(domName string) ([]libvirt.TypedParam, error) {
+	dom, err := l.GetDomainByName(domName)
+	if err != nil {
+		return nil, err
+	}
+	stats, _, err := l.con.DomainGetCPUStats(dom, 3, -1, 1, 0)
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (l *Lib) GetDomCPUUsage(domName string, interval int) (float64, error) {
+	t1, err := l.GetDomCPUTime(domName)
+	if err != nil {
+		return 0.0, err
+	}
+	var cpu1, cpu2 uint64
+	for _, v := range t1 {
+		if v.Field == "cpu_time" {
+			cpu1 = v.Value.I.(uint64)
+		}
+	}
+	time.Sleep(time.Duration(interval) * time.Second)
+	t2, err := l.GetDomCPUTime(domName)
+	if err != nil {
+		return 0.0, err
+	}
+	for _, v := range t2 {
+		if v.Field == "cpu_time" {
+			cpu2 = v.Value.I.(uint64)
+		}
+	}
+	fmt.Println(cpu1, "  ", cpu2)
+	ret := float64(cpu2-cpu1) / float64(interval)
+	return ret / 10e9, nil
 }

@@ -140,7 +140,6 @@ func (l *Lib) GetDomainXML(name string) Domain {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", descDomain)
 	return descDomain
 }
 
@@ -156,6 +155,15 @@ func (l *Lib) getDomainBridgeName(name string) string {
 func (l *Lib) GetDomainVNCPort(name string) string {
 	d := l.GetDomainXML(name)
 	return d.Devices.Graphics.Port
+}
+func (l *Lib) GetDomainDiskPath(name string) string {
+	d := l.GetDomainXML(name)
+	for _, v := range d.Devices.Disk {
+		if v.Target.Dev == "hda" {
+			return v.Source.File
+		}
+	}
+	return ""
 }
 
 func (l *Lib) CreateDomain(opt DomainCreateOpt) error {
@@ -404,4 +412,50 @@ func (l *Lib) GetAllInterfaces() {
 	//l.con.InterfaceLookupByMacString()
 	//l.con.DomainSnapshotCurrent()
 	fmt.Printf("%+v \n\n %+v\n\n %+v", interfaces, listInterfaces, addresses)
+}
+
+func (l *Lib) migrateDomain(
+	domain libvirt.Domain,
+	dest_con *libvirt.Libvirt,
+	xmlin string,
+	dname string,
+	uri string,
+	bandwidth uint64,
+	params []int,
+	useParams bool,
+	flags uint64,
+) {
+	cookieout, dom_xml, err := l.con.DomainMigrateBegin3(domain, libvirt.OptString{xmlin}, flags, libvirt.OptString{dname}, bandwidth)
+	if err != nil {
+		panic(err)
+	}
+	if dom_xml == "" {
+
+	}
+
+	state, _, _, _, _, _ := l.con.DomainGetInfo(domain)
+	if state == uint8(libvirt.DomainPaused) {
+		flags |= uint64(libvirt.MigratePaused)
+	}
+
+	cookieout2, uriout, err := l.con.DomainMigratePrepare3(cookieout, libvirt.OptString{uri}, flags, libvirt.OptString{dname}, bandwidth, dom_xml)
+	if err != nil {
+		panic(err)
+	}
+	cookieout3, err := l.con.DomainMigratePerform3(domain, libvirt.OptString{xmlin}, cookieout2, uriout, libvirt.OptString{uri}, flags, libvirt.OptString{dname}, bandwidth)
+	if err != nil {
+		panic(err)
+	}
+	Cancelled := int32(0)
+	if err != nil {
+		Cancelled = 1
+	}
+	dom, cookieout4, err := l.con.DomainMigrateFinish3(dname, cookieout3, uriout, libvirt.OptString{uri}, flags, Cancelled)
+	if err != nil {
+		panic(err)
+	}
+	err = l.con.DomainMigrateConfirm3(dom, cookieout4, flags, Cancelled)
+	if err != nil {
+		panic(err)
+	}
 }

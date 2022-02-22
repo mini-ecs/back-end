@@ -155,6 +155,32 @@ func (v *vmManager) GetMemUsage(id uint) (float64, error) {
 	l := virtlib.GetConnectedLib()
 	return l.GetDomMemUsage(vm.Name)
 }
+
+func (v *vmManager) GetDiskUsage(id uint) (float64, error) {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetVNCPort, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return 0.0, db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	return l.GetDomDiskUsage(vm.Name)
+}
+
+func (v *vmManager) GetCPUUsage(id uint) (float64, error) {
+	db := pool.GetDB()
+	log.GetGlobalLogger().Infof("GetVNCPort, vm id: %v", id)
+	vm := model.VM{}
+	vm.ID = id
+	res := db.First(&vm)
+	if res.Error != nil {
+		return 0.0, db.Error
+	}
+	l := virtlib.GetConnectedLib()
+	return l.GetDomCPUUsage(vm.Name, 1)
+}
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 	db := pool.GetDB()
 	log.GetGlobalLogger().Infof("CreateVM")

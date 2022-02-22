@@ -3,6 +3,7 @@ package virtlib
 import (
 	"errors"
 	"fmt"
+	"github.com/mini-ecs/back-end/pkg/config"
 	"math/rand"
 	"os/exec"
 	"sync"
@@ -39,7 +40,7 @@ func establishVNCtoHTTP(vncPort int, httpPort int) error {
 	portPool[httpPort] = vncPort
 	mutex.Unlock()
 	cmd := exec.Command("sh", "-c", fmt.Sprintf(
-		"novnc_proxy --listen %v --vnc localhost:%v",
+		"%v --listen %v --vnc localhost:%v", config.GetConfig().NodeInfo.VNCBin,
 		httpPort,
 		vncPort,
 	))

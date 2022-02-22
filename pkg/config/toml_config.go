@@ -42,8 +42,9 @@ type ImageStorage struct {
 }
 
 type NodeInfo struct {
-	Ip   string
-	Port uint
+	Ip     string
+	Port   uint
+	VNCBin string
 }
 
 var c TomlConfig

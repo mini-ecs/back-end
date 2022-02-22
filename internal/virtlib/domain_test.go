@@ -6,6 +6,7 @@ import (
 	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"math"
 	"net"
 	"testing"
 )
@@ -13,7 +14,7 @@ import (
 var domainName = "123"
 
 func GenerateEnv() *Lib {
-	ip := net.ParseIP("10.249.46.250")
+	ip := net.ParseIP("219.223.251.93")
 	l, err := New(ip, "16509")
 	if err != nil {
 		panic("generate env error: " + err.Error())
@@ -183,4 +184,17 @@ func TestLib_DeleteSnapshot(t *testing.T) {
 	snapshot := list[0]
 	err = l.DeleteSnapshot(domainName, snapshot.Name, libvirt.DomainSnapshotDeleteChildren)
 	assert.Nil(t, err)
+}
+
+func TestLib_GetDomainDiskPath(t *testing.T) {
+	l := GenerateEnv()
+	disk := l.GetDomainDiskPath("ubuntu-m")
+	fmt.Println(disk)
+}
+
+func TestLib_migrateDomain(t *testing.T) {
+	l := GenerateEnv()
+	domain, err := l.GetDomainByName("234")
+	assert.Equal(t, err, nil)
+	l.migrateDomain(domain, l.con, "", "", "qemu+tcp://219.223.251.73/system", math.MaxInt8, nil, false, uint64(libvirt.MigrateUnsafe))
 }

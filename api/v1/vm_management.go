@@ -59,7 +59,26 @@ func GetMemoryUsage(c *gin.Context) {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, response.SuccessMsg(rate))
+	disk, err := service.VMManager.GetDiskUsage(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	cpu, err := service.VMManager.GetCPUUsage(uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	type msg struct {
+		Rate float64 `json:"rate"`
+		Disk float64 `json:"disk"`
+		Cpu  float64 `json:"cpu"`
+	}
+	c.JSON(http.StatusOK, response.SuccessMsg(msg{
+		Rate: rate,
+		Disk: disk,
+		Cpu:  cpu,
+	}))
 }
 
 // CreateVM godoc

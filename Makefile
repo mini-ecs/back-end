@@ -1,5 +1,5 @@
 	USER=fangaoyang
-	HOST=10.249.46.250
+	HOST=219.223.251.93
 	DIR=/home/fangaoyang/work/backend-sync
 all: swag proto build
 
