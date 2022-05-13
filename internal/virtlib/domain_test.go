@@ -6,7 +6,6 @@ import (
 	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"math"
 	"net"
 	"testing"
 )
@@ -194,7 +193,8 @@ func TestLib_GetDomainDiskPath(t *testing.T) {
 
 func TestLib_migrateDomain(t *testing.T) {
 	l := GenerateEnv()
-	domain, err := l.GetDomainByName("234")
+	//domain, err := l.GetDomainByName("234")
+	//assert.Equal(t, err, nil)
+	err := l.migrateDomain()
 	assert.Equal(t, err, nil)
-	l.migrateDomain(domain, l.con, "", "", "qemu+tcp://219.223.251.73/system", math.MaxInt8, nil, false, uint64(libvirt.MigrateUnsafe))
 }

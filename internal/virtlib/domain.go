@@ -10,6 +10,7 @@ import (
 	"github.com/mini-ecs/back-end/pkg/log"
 	"math"
 	"net"
+	"os/exec"
 	"strconv"
 	"time"
 )
@@ -414,48 +415,15 @@ func (l *Lib) GetAllInterfaces() {
 	fmt.Printf("%+v \n\n %+v\n\n %+v", interfaces, listInterfaces, addresses)
 }
 
-func (l *Lib) migrateDomain(
-	domain libvirt.Domain,
-	dest_con *libvirt.Libvirt,
-	xmlin string,
-	dname string,
-	uri string,
-	bandwidth uint64,
-	params []int,
-	useParams bool,
-	flags uint64,
-) {
-	cookieout, dom_xml, err := l.con.DomainMigrateBegin3(domain, libvirt.OptString{xmlin}, flags, libvirt.OptString{dname}, bandwidth)
-	if err != nil {
-		panic(err)
-	}
-	if dom_xml == "" {
+func (l *Lib) migrateDomain() error {
+	targetURL := "qemu+tcp://219.223.251.73/system"
+	tcpTarget := "tcp://219.223.251.73"
+	cmdStr := fmt.Sprintf("virsh migrate --live 234 %s %s --unsafe", targetURL, tcpTarget)
+	cmd := exec.Command("sh", "-c", cmdStr)
 
-	}
-
-	state, _, _, _, _, _ := l.con.DomainGetInfo(domain)
-	if state == uint8(libvirt.DomainPaused) {
-		flags |= uint64(libvirt.MigratePaused)
-	}
-
-	cookieout2, uriout, err := l.con.DomainMigratePrepare3(cookieout, libvirt.OptString{uri}, flags, libvirt.OptString{dname}, bandwidth, dom_xml)
+	err := cmd.Run()
 	if err != nil {
-		panic(err)
+		log.GetGlobalLogger().Error(err)
 	}
-	cookieout3, err := l.con.DomainMigratePerform3(domain, libvirt.OptString{xmlin}, cookieout2, uriout, libvirt.OptString{uri}, flags, libvirt.OptString{dname}, bandwidth)
-	if err != nil {
-		panic(err)
-	}
-	Cancelled := int32(0)
-	if err != nil {
-		Cancelled = 1
-	}
-	dom, cookieout4, err := l.con.DomainMigrateFinish3(dname, cookieout3, uriout, libvirt.OptString{uri}, flags, Cancelled)
-	if err != nil {
-		panic(err)
-	}
-	err = l.con.DomainMigrateConfirm3(dom, cookieout4, flags, Cancelled)
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
