@@ -11,6 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/magiconair/properties v1.8.5
+	github.com/minio/minio-go/v7 v7.0.26
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
