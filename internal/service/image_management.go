@@ -98,3 +98,20 @@ func (i *imageManagement) DeleteImage(id uint, userID string) error {
 
 	return nil
 }
+
+func (i *imageManagement) UploadImage(name, location, userID string) error {
+	db := pool.GetDB()
+	user := model.User{}
+	if err := db.Find(&user, "uuid = ?", userID).Error; err != nil {
+		return err
+	}
+	if err := db.Create(&model.ImageOrSnapshot{
+		Name:      name,
+		Location:  location,
+		Creator:   user,
+		CreatorID: user.ID,
+	}); err != nil {
+		return err.Error
+	}
+	return nil
+}

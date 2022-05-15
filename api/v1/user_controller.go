@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/mini-ecs/back-end/internal/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"github.com/mini-ecs/back-end/pkg/log"
 	"net/http"
+	"os/exec"
 )
 
 var logger = log.GetGlobalLogger()
@@ -33,6 +35,18 @@ func RegisterUser(c *gin.Context) {
 	err = service.UserService.Register(&user)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorDBOperation, err.Error()))
+		return
+	}
+	cmd := exec.Command("sh", "-c", fmt.Sprintf(
+		"%v admin user add %v %v %v && "+
+			"%v admin policy set %v %v user=%v &&"+
+			"%v mb %v", "mc", "myminio", "username", "password",
+		"mc", "myminio", "miniecs", "username",
+		"mc", "username"))
+
+	if err := cmd.Run(); err != nil {
+		logger.Errorf("Failed to add user to minio: %v", err)
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorMinIO, err.Error()))
 		return
 	}
 

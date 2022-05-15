@@ -6,6 +6,8 @@ const (
 	ErrorDBOperation
 	ErrorLogin
 	ErrorInternal
+	UploadImageFailed
+	ErrorMinIO
 )
 
 const (
