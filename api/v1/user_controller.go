@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,8 @@ import (
 	"github.com/mini-ecs/back-end/pkg/common/error_msg"
 	"github.com/mini-ecs/back-end/pkg/common/response"
 	"github.com/mini-ecs/back-end/pkg/log"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"net/http"
 	"os/exec"
 )
@@ -39,16 +42,35 @@ func RegisterUser(c *gin.Context) {
 	}
 	cmd := exec.Command("sh", "-c", fmt.Sprintf(
 		"%v admin user add %v %v %v && "+
-			"%v admin policy set %v %v user=%v &&"+
-			"%v mb %v", "mc", "myminio", user.Username, user.Password,
-		"mc", "myminio", "miniecs", user.Username,
-		"mc", user.Username))
+			"%v admin policy set %v %v user=%v", "mc", "myminio", user.Username, user.Password,
+		"mc", "myminio", "miniecs", user.Username))
 
 	if err := cmd.Run(); err != nil {
 		logger.Errorf("Failed to add user to minio: %v", err)
 		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorMinIO, err.Error()))
 		return
 	}
+
+	// --------------------------------------
+	endpoint := "localhost:9000"
+	accessKeyID := "minioadmin"
+	secretAccessKey := "minioadmin"
+	useSSL := false
+	// Initialize minio client object.
+	minioClient, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure: useSSL,
+	})
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorMinIO, err.Error()))
+		return
+	}
+	err = minioClient.MakeBucket(context.Background(), user.Username, minio.MakeBucketOptions{})
+	if err != nil {
+		c.JSON(http.StatusOK, response.FailCodeMsg(error_msg.ErrorMinIO, err.Error()))
+		return
+	}
+	// --------------------------------------
 
 	c.JSON(http.StatusOK, response.SuccessMsg(user))
 }
