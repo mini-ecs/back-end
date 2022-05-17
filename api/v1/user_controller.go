@@ -40,9 +40,9 @@ func RegisterUser(c *gin.Context) {
 	cmd := exec.Command("sh", "-c", fmt.Sprintf(
 		"%v admin user add %v %v %v && "+
 			"%v admin policy set %v %v user=%v &&"+
-			"%v mb %v", "mc", "myminio", "username", "password",
-		"mc", "myminio", "miniecs", "username",
-		"mc", "username"))
+			"%v mb %v", "mc", "myminio", user.Username, user.Password,
+		"mc", "myminio", "miniecs", user.Username,
+		"mc", user.Username))
 
 	if err := cmd.Run(); err != nil {
 		logger.Errorf("Failed to add user to minio: %v", err)
