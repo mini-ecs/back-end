@@ -94,7 +94,7 @@ func Login(c *gin.Context) {
 	logger.Infof("User %v try to login", user)
 
 	if service.UserService.Login(&user) {
-		c.SetCookie("uuid", user.Uuid, 3600, "/", "219.223.251.93", false, true)
+		c.SetCookie("uuid", user.Uuid, 3600, "/", "", false, true)
 
 		session := sessions.Default(c)
 		// 通过session.Get读取session值
