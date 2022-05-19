@@ -52,7 +52,7 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	// --------------------------------------
-	endpoint := "localhost:9000"
+	endpoint := "10.249.46.250:9000"
 	accessKeyID := "minioadmin"
 	secretAccessKey := "minioadmin"
 	useSSL := false

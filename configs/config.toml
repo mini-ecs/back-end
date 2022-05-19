@@ -5,8 +5,8 @@ debug = true
 port = "9999"
 
 [mysql]
-#host = "219.223.251.93"
-host = "127.0.0.1"
+host = "219.223.251.93"
+#host = "127.0.0.1"
 name = "miniecs"
 password = "123456"
 port = 3306
