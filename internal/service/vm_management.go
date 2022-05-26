@@ -182,46 +182,50 @@ func (v *vmManager) GetCPUUsage(id uint) (float64, error) {
 	return l.GetDomCPUUsage(vm.Name, 1)
 }
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
-	db := pool.GetDB()
-	log.GetGlobalLogger().Infof("CreateVM")
-	course := model.Course{}
-	res := db.First(&course, "course_name = ?", opt.CourseName)
-	log.GetGlobalLogger().Infof("course info: %+v", course)
-	if res.Error != nil {
-		return res.Error
-	}
-	res = db.First(&course.Image, "id = ?", course.ImageID)
-	if res.Error != nil {
-		return res.Error
-	}
-	creator := model.User{}
-	res = db.First(&creator, "uuid = ?", opt.Creator)
-	if res.Error != nil {
-		return res.Error
-	}
-	status := model.Status{}
-	res = db.First(&status, "status = ?", "pending")
-	log.GetGlobalLogger().Errorf("get status: %+v", status)
-	if res.Error != nil {
-		return res.Error
-	}
-	vm := model.VM{
-		Name:           opt.InstanceName,
-		CreatorID:      creator.ID,
-		SourceCourseID: course.ID,
-		SourceCourse:   course,
-		StatusID:       status.ID,
-	}
+    db := pool.GetDB()
+    log.GetGlobalLogger().Infof("CreateVM")
+    course := model.Course{}
+    res := db.First(&course, "course_name = ?", opt.CourseName)
+    log.GetGlobalLogger().Infof("course info: %+v", course)
+    if res.Error != nil {
+        return res.Error
+    }
+    res = db.First(&course.Image, "id = ?", course.ImageID)
+    if res.Error != nil {
+        return res.Error
+    }
+    res = db.First(&course.MachineConfig, "id = ?", course.MachineConfigID)
+    if res.Error != nil {
+        return res.Error
+    }
+    creator := model.User{}
+    res = db.First(&creator, "uuid = ?", opt.Creator)
+    if res.Error != nil {
+        return res.Error
+    }
+    status := model.Status{}
+    res = db.First(&status, "status = ?", "pending")
+    log.GetGlobalLogger().Errorf("get status: %+v", status)
+    if res.Error != nil {
+        return res.Error
+    }
+    vm := model.VM{
+        Name:           opt.InstanceName,
+        CreatorID:      creator.ID,
+        SourceCourseID: course.ID,
+        SourceCourse:   course,
+        StatusID:       status.ID,
+    }
 
-	//------------------------Image copy operations---------------------
-	// 注意，该文件是最基本的镜像文件，此后创建的快照都会在改文件后添加".Snapshot"样式的后缀
-	// 用数据库记录该实例拥有的快照的地址，以便于后续操作管理(删除、恢复、合并快照)
-	vm.BaseImageFileName = uuid.New().String()
-	snapshotPath := getImageFilePath(vm.BaseImageFileName)
-	// 拷贝镜像
-	err := image_manager.LocalMachineImpl.Copy(
-		snapshotPath,
-		vm.SourceCourse.Image.Location,
+    //------------------------Image copy operations---------------------
+    // 注意，该文件是最基本的镜像文件，此后创建的快照都会在改文件后添加".Snapshot"样式的后缀
+    // 用数据库记录该实例拥有的快照的地址，以便于后续操作管理(删除、恢复、合并快照)
+    vm.BaseImageFileName = uuid.New().String()
+    snapshotPath := getImageFilePath(vm.BaseImageFileName)
+    // 拷贝镜像
+    err := image_manager.LocalMachineImpl.Copy(
+        snapshotPath,
+        vm.SourceCourse.Image.Location,
 	)
 	if err != nil {
 		panic(err)
@@ -231,27 +235,29 @@ func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
 		VMName:           vm.Name,
 		SnapshotName:     vm.BaseImageFileName,
 		SnapshotLocation: snapshotPath,
-	}
-	res = db.Create(&snapshot)
-	if res.Error != nil {
-		panic(res.Error)
-	}
+    }
+    res = db.Create(&snapshot)
+    if res.Error != nil {
+        panic(res.Error)
+    }
 
-	//-----------------------------------libvirt operations--------------------
-	l := virtlib.GetConnectedLib()
-	defer l.DisConnect()
-	d := virtlib.DefaultCreateDomainOpt
-	d.Uuid = uuid.New().String()
-	d.Name = vm.Name
-	d.Devices.Disk[1].Source.File = snapshotPath
-	//d.Devices.Disk = d.Devices.Disk[1:]
+    //-----------------------------------libvirt operations--------------------
+    l := virtlib.GetConnectedLib()
+    defer l.DisConnect()
+    d := virtlib.DefaultCreateDomainOpt
+    d.Memory.Text = fmt.Sprintf("%v", course.MachineConfig.RAM)
+    d.Vcpu = fmt.Sprintf("%v", course.MachineConfig.CPU)
+    d.Uuid = uuid.New().String()
+    d.Name = vm.Name
+    d.Devices.Disk[1].Source.File = snapshotPath
+    //d.Devices.Disk = d.Devices.Disk[1:]
 
-	fmt.Printf("%+v\n", d)
-	err = l.CreateDomain(d)
-	if err != nil {
-		panic(err)
-	}
-	//------------------------------------------------------
+    fmt.Printf("%+v\n", d)
+    err = l.CreateDomain(d)
+    if err != nil {
+        panic(err)
+    }
+    //------------------------------------------------------
 
 	res = db.Create(&vm)
 	if res.Error != nil {
