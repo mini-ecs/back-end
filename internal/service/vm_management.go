@@ -12,6 +12,7 @@ import (
 	"github.com/mini-ecs/back-end/pkg/config"
 	"github.com/mini-ecs/back-end/pkg/log"
 	"strconv"
+    "time"
 )
 
 var VMManager = new(vmManager)
@@ -182,6 +183,9 @@ func (v *vmManager) GetCPUUsage(id uint) (float64, error) {
 	return l.GetDomCPUUsage(vm.Name, 1)
 }
 func (v *vmManager) CreateVM(opt model.CreateVMOpt) error {
+    defer func(start time.Time) {
+        log.GetGlobalLogger().Infof("创建虚拟机耗时：%v", time.Since(start).String())
+    }(time.Now())
     db := pool.GetDB()
     log.GetGlobalLogger().Infof("CreateVM")
     course := model.Course{}
